@@ -26,7 +26,7 @@ public class ShadowBitmapFactory {
 
     @Implementation
     public static Bitmap decodeResource(Resources res, int id) {
-        Bitmap bitmap = create("resource:" + getResourceName(id));
+        Bitmap bitmap = create("resource: " + getResourceName(id));
         shadowOf(bitmap).setLoadedFromResourceId(id);
         return bitmap;
     }
@@ -37,12 +37,12 @@ public class ShadowBitmapFactory {
 
     @Implementation
     public static Bitmap decodeFile(String pathName) {
-        return create("file:" + pathName);
+        return create("file: " + pathName);
     }
 
     @Implementation
     public static Bitmap decodeFile(String pathName, BitmapFactory.Options options) {
-        return create("file:" + pathName, options);
+        return create("file: " + pathName, options);
     }
 
     @Implementation
@@ -62,13 +62,15 @@ public class ShadowBitmapFactory {
     public static Bitmap create(String name, BitmapFactory.Options options) {
         Bitmap bitmap = Robolectric.newInstanceOf(Bitmap.class);
         ShadowBitmap shadowBitmap = shadowOf(bitmap);
-        shadowBitmap.appendDescription("Bitmap for " + name);
+        StringBuilder description = new StringBuilder();
+        description.append("Bitmap for " + name);
 
         String optionsString = stringify(options);
         if (optionsString.length() > 0) {
-            shadowBitmap.appendDescription(" with options ");
-            shadowBitmap.appendDescription(optionsString);
+            description.append(" with options ");
+            description.append(optionsString);
         }
+        shadowBitmap.setOrigin(description.toString());
 
         Point widthAndHeight = widthAndHeightMap.get(name);
         if (widthAndHeight == null) {
@@ -87,11 +89,11 @@ public class ShadowBitmapFactory {
     }
 
     public static void provideWidthAndHeightHints(int resourceId, int width, int height) {
-        widthAndHeightMap.put("resource:" + getResourceName(resourceId), new Point(width, height));
+        widthAndHeightMap.put("resource: " + getResourceName(resourceId), new Point(width, height));
     }
 
     public static void provideWidthAndHeightHints(String file, int width, int height) {
-        widthAndHeightMap.put("file:" + file, new Point(width, height));
+        widthAndHeightMap.put("file: " + file, new Point(width, height));
     }
 
     private static String stringify(BitmapFactory.Options options) {

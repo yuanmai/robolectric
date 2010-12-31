@@ -25,7 +25,7 @@ public class ShadowPaint {
     private int shadowColor;
     private Shader shader;
     private int alpha;
-    private ColorFilter filter;
+    private ColorFilter colorFilter;
 
     @Implementation
     public Shader setShader(Shader shader) {
@@ -172,12 +172,12 @@ public class ShadowPaint {
 
     @Implementation
     public ColorFilter getColorFilter() {
-        return filter;
+        return colorFilter;
     }
 
     @Implementation
     public ColorFilter setColorFilter(ColorFilter filter) {
-        this.filter = filter;
+        this.colorFilter = filter;
         return filter;
     }
 

@@ -8,12 +8,13 @@ import android.widget.ImageView;
 import com.xtremelabs.robolectric.R;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.xtremelabs.robolectric.Robolectric.visualize;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertThat;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class ImageViewTest {
@@ -30,12 +31,13 @@ public class ImageViewTest {
     @Test
     public void shouldDrawWithImageMatrix() throws Exception {
         imageView.setImageMatrix(new Matrix());
-        Assert.assertEquals("Bitmap for resource:drawable/an_image", visualize(imageView));
+        assertThat(visualize(imageView), containsString("Bitmap for resource: drawable/an_image"));
 
         Matrix matrix = new Matrix();
         matrix.setTranslate(15, 20);
         imageView.setImageMatrix(matrix);
-        Assert.assertEquals("Bitmap for resource:drawable/an_image at (15,20)", visualize(imageView));
+        assertThat(visualize(imageView), containsString("drawBitmap: left: 15.0, top: 20.0"));
+        assertThat(visualize(imageView), containsString("Bitmap for resource: drawable/an_image"));
     }
 
     @Test
@@ -43,12 +45,15 @@ public class ImageViewTest {
         Matrix matrix = new Matrix();
         matrix.setTranslate(15, 20);
         imageView.setImageMatrix(matrix);
-        Assert.assertEquals("Bitmap for resource:drawable/an_image at (15,20)", visualize(imageView));
+        assertThat(visualize(imageView), containsString("drawBitmap: left: 15.0, top: 20.0"));
+        assertThat(visualize(imageView), containsString("Bitmap for resource: drawable/an_image"));
 
         matrix.setTranslate(30, 40);
-        Assert.assertEquals("Bitmap for resource:drawable/an_image at (15,20)", visualize(imageView));
+        assertThat(visualize(imageView), containsString("drawBitmap: left: 15.0, top: 20.0"));
+        assertThat(visualize(imageView), containsString("Bitmap for resource: drawable/an_image"));
 
         imageView.setImageMatrix(matrix);
-        Assert.assertEquals("Bitmap for resource:drawable/an_image at (30,40)", visualize(imageView));
+        assertThat(visualize(imageView), containsString("drawBitmap: left: 30.0, top: 40.0"));
+        assertThat(visualize(imageView), containsString("Bitmap for resource: drawable/an_image"));
     }
 }

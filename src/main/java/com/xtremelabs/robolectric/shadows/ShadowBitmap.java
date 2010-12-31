@@ -1,6 +1,10 @@
 package com.xtremelabs.robolectric.shadows;
 
 import android.graphics.Bitmap;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
@@ -8,23 +12,28 @@ import com.xtremelabs.robolectric.internal.RealObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
 @SuppressWarnings({"UnusedDeclaration"})
 @Implements(Bitmap.class)
 public class ShadowBitmap {
-    @RealObject private Bitmap realBitmap;
+    @RealObject
+    private Bitmap realBitmap;
 
     private int width;
     private int height;
-    private String description = "";
+    private String origin = "Empty bitmap";
     private int loadedFromResourceId = -1;
+    private List<DrawEvent> drawEvents = new ArrayList<DrawEvent>();
 
     @Implementation
     public boolean compress(Bitmap.CompressFormat format, int quality, OutputStream stream) {
         try {
-            stream.write((description + " compressed as " + format + " with quality " + quality).getBytes());
+            stream.write((origin + " compressed as " + format + " with quality " + quality).getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -46,7 +55,7 @@ public class ShadowBitmap {
     public static Bitmap createScaledBitmap(Bitmap src, int dstWidth, int dstHeight, boolean filter) {
         Bitmap scaledBitmap = Robolectric.newInstanceOf(Bitmap.class);
         ShadowBitmap shadowBitmap = shadowOf(scaledBitmap);
-        shadowBitmap.appendDescription(shadowOf(src).getDescription());
+        shadowBitmap.appendDescription(shadowOf(src).getOrigin());
         shadowBitmap.appendDescription(" scaled to " + dstWidth + " x " + dstHeight);
         if (filter) {
             shadowBitmap.appendDescription(" with filter " + filter);
@@ -56,16 +65,16 @@ public class ShadowBitmap {
         return scaledBitmap;
     }
 
-    public void appendDescription(String s) {
-        description += s;
+    private void appendDescription(String s) {
+        origin += s;
     }
 
-    public void setDescription(String s) {
-        description = s;
+    public void setOrigin(String s) {
+        origin = s;
     }
 
-    public String getDescription() {
-        return description;
+    public String getOrigin() {
+        return origin;
     }
 
     public static Bitmap create(String name) {
@@ -103,7 +112,8 @@ public class ShadowBitmap {
         return height;
     }
 
-    @Override @Implementation
+    @Override
+    @Implementation
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != ShadowBitmap.class) return false;
@@ -112,25 +122,109 @@ public class ShadowBitmap {
 
         if (height != that.height) return false;
         if (width != that.width) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (origin != null ? !origin.equals(that.origin) : that.origin != null) return false;
 
         return true;
     }
 
-    @Override @Implementation
+    @Override
+    @Implementation
     public int hashCode() {
         int result = width;
         result = 31 * result + height;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (origin != null ? origin.hashCode() : 0);
         return result;
     }
 
-    @Override @Implementation
+    @Override
+    @Implementation
     public String toString() {
         return "ShadowBitmap{" +
-                "description='" + description + '\'' +
+                "description='" + origin + '\'' +
                 ", width=" + width +
                 ", height=" + height +
                 '}';
+    }
+
+    public List<DrawEvent> getDrawEvents() {
+        return Collections.unmodifiableList(drawEvents);
+    }
+
+    public void appendDrawEvent(DrawEvent drawEvent) {
+        drawEvents.add(drawEvent);
+    }
+
+    public String getDescription() {
+        return getDescription("");
+    }
+
+    private String getDescription(String indent) {
+        String description = indent + origin;
+        for (DrawEvent drawEvent : drawEvents) {
+            description += "\n\t" + indent + drawEvent.getCommand() + ": " + drawEvent.getDescription();
+            ShadowBitmap bitmap = drawEvent.getBitmap();
+            if (bitmap != null) {
+                description += "\n\t\t" + indent + "with bitmap: \n" + bitmap.getDescription(indent + "\t\t\t");
+            }
+            String matrixDescription = drawEvent.getMatrixDescription();
+            if (!matrixDescription.isEmpty()) {
+                description += "\n\t\t" + indent + "with matrix: " + matrixDescription;
+            }
+            Paint drawEventPaint = drawEvent.getPaint();
+            ColorFilter colorFilter = drawEventPaint != null ? drawEventPaint.getColorFilter() : null;
+            if (colorFilter != null && colorFilter instanceof ColorMatrixColorFilter) {
+                ShadowColorMatrixColorFilter filter = shadowOf((ColorMatrixColorFilter) colorFilter);
+                description += "\n\t\t" + indent + "with color filter: " + filter.toString();
+            }
+        }
+        return description;
+    }
+
+    public static class DrawEvent {
+        private String command;
+        private String description;
+        private Paint paint;
+        private ShadowBitmap bitmap;
+        private ShadowMatrix matrix;
+
+        public DrawEvent(String command, String description, Paint paint) {
+            this(command, description, paint, null, null);
+        }
+
+        public DrawEvent(String command, String description, Paint paint, Bitmap bitmap) {
+            this(command, description, paint, bitmap, null);
+        }
+
+        public DrawEvent(String command, String description, Paint paint, Matrix matrix) {
+            this(command, description, paint, null, matrix);
+        }
+
+        public DrawEvent(String command, String description, Paint paint, Bitmap bitmap, Matrix matrix) {
+            this.command = command;
+            this.description = description;
+            this.paint = paint;
+            this.bitmap = bitmap == null ? null : shadowOf(bitmap);
+            this.matrix = matrix == null ? null : shadowOf(matrix);
+        }
+
+        String getCommand() {
+            return command;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Paint getPaint() {
+            return paint;
+        }
+
+        public ShadowBitmap getBitmap() {
+            return bitmap;
+        }
+
+        public String getMatrixDescription() {
+            return matrix == null ? "" : matrix.getDescription();
+        }
     }
 }

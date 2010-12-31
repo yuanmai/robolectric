@@ -21,6 +21,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -407,6 +408,10 @@ public class Robolectric {
         return (ShadowColorMatrix) shadowOf_(instance);
     }
 
+    public static ShadowColorMatrixColorFilter shadowOf(ColorMatrixColorFilter instance) {
+        return (ShadowColorMatrixColorFilter) shadowOf_(instance);
+    }
+
     public static ShadowIntent shadowOf(Intent instance) {
         return (ShadowIntent) shadowOf_(instance);
     }
@@ -717,6 +722,6 @@ public class Robolectric {
     }
 
     public static String visualize(Bitmap bitmap) {
-        return shadowOf(bitmap).getDescription();
+        return shadowOf(bitmap).getOrigin();
     }
 }

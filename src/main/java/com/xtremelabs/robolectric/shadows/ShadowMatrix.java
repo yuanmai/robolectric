@@ -10,9 +10,9 @@ import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 @Implements(Matrix.class)
 public class ShadowMatrix {
     private float scaleX = 1;
-    private float transX;
-
     private float scaleY = 1;
+
+    private float transX;
     private float transY;
 
     // scaleX=0, skewX=1,  transX=2
@@ -49,6 +49,12 @@ public class ShadowMatrix {
         transY += dy;
     }
 
+    @Implementation
+    public void setScale(float x, float y) {
+        scaleX = x;
+        scaleY = y;
+    }
+
     public float getTransX() {
         return transX;
     }
@@ -70,5 +76,22 @@ public class ShadowMatrix {
 
     public float getScaleY() {
         return scaleY;
+    }
+
+    public String getDescription() {
+        String description = "";
+
+        if (transX != 0.0f || transY != 0.0f) {
+            description += "translateX: " + transX + ", translateY: " + transY;
+        }
+
+        if (scaleX != 1.0f || scaleY != 1.0f) {
+            if (description.length() > 0) {
+                description += ", ";
+            }
+            description += "scaleX: " + scaleX + ", scaleY: " + scaleY;
+        }
+
+        return description;
     }
 }

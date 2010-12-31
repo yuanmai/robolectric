@@ -1,10 +1,12 @@
 package com.xtremelabs.robolectric.shadows;
 
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.xtremelabs.robolectric.Robolectric.newInstanceOf;
@@ -20,10 +22,8 @@ import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 @SuppressWarnings({"UnusedDeclaration"})
 @Implements(Canvas.class)
 public class ShadowCanvas {
-    private List<PathPaintHistoryEvent> pathPaintEvents = new ArrayList<PathPaintHistoryEvent>();
-    private List<CirclePaintHistoryEvent> circlePaintEvents = new ArrayList<CirclePaintHistoryEvent>();
-    private Paint drawnPaint;
     private Bitmap targetBitmap = newInstanceOf(Bitmap.class);
+
     private float translateX;
     private float translateY;
     private float scaleX = 1;
@@ -31,10 +31,6 @@ public class ShadowCanvas {
 
     public void __constructor__(Bitmap bitmap) {
         this.targetBitmap = bitmap;
-    }
-
-    public void appendDescription(String s) {
-        shadowOf(targetBitmap).appendDescription(s);
     }
 
     public String getDescription() {
@@ -61,104 +57,59 @@ public class ShadowCanvas {
 
     @Implementation
     public void drawPaint(Paint paint) {
-        drawnPaint = paint;
+        appendDrawEvent(new ShadowBitmap.DrawEvent("drawPaint", "", paint));
     }
 
     @Implementation
     public void drawBitmap(Bitmap bitmap, float left, float top, Paint paint) {
-        describeBitmap(bitmap, paint);
-
-        int x = (int) (left + translateX);
-        int y = (int) (top + translateY);
-        if (x != 0 && y != 0) {
-            appendDescription(" at (" + x + "," + y + ")");
-        }
-
-        if (scaleX != 1 && scaleY != 1) {
-            appendDescription(" scaled by (" + scaleX + "," + scaleY + ")");
-        }
-    }
-
-    private void describeBitmap(Bitmap bitmap, Paint paint) {
-        if (getDescription().length() != 0) {
-            appendDescription("\n");
-        }
-
-        appendDescription(shadowOf(bitmap).getDescription());
-
-        if (paint != null) {
-            ColorFilter colorFilter = paint.getColorFilter();
-            if (colorFilter != null) {
-                appendDescription(" with " + colorFilter);
-            }
-        }
+        internalDrawBitmap(bitmap, left, top, paint, null);
     }
 
     @Implementation
     public void drawBitmap(Bitmap bitmap, Matrix matrix, Paint paint) {
-        describeBitmap(bitmap, paint);
-
-        appendDescription(" transformed by matrix");
+        internalDrawBitmap(bitmap, 0, 0, paint, matrix);
     }
 
-    public int getPathPaintHistoryCount() {
-        return pathPaintEvents.size();
+    private void internalDrawBitmap(Bitmap bitmap, float left, float top, Paint paint, Matrix matrix) {
+        appendDrawEvent(new ShadowBitmap.DrawEvent(
+                "drawBitmap",
+                "left: " + (translateX + left) + ", top: " + (translateY + top),
+                paint,
+                bitmap,
+                matrix));
     }
 
-    public int getCirclePaintHistoryCount() {
-        return circlePaintEvents.size();
+    @Implementation
+    public void drawCircle(float cx, float cy, float radius, Paint paint) {
+        appendDrawEvent(new ShadowBitmap.DrawEvent("drawCircle", "cx: " + cx + ", cy: " + cy + ", radius: " + radius, paint));
     }
 
-    public boolean hasDrawnPath() {
-        return getPathPaintHistoryCount() > 0;
+//    private void describeBitmap(Bitmap bitmap, Paint paint) {
+//        if (getDescription().length() != 0) {
+//            appendDescription("\n");
+//        }
+//
+//        appendDescription(shadowOf(bitmap).getDescription());
+//
+//        if (paint != null) {
+//            ColorFilter colorFilter = paint.getColorFilter();
+//            if (colorFilter != null) {
+//                appendDescription(" with " + colorFilter);
+//            }
+//        }
+//    }
+
+    public List<ShadowBitmap.DrawEvent> getDrawEvents() {
+        return shadowOf(targetBitmap).getDrawEvents();
     }
 
-    public boolean hasDrawnCircle() {
-        return circlePaintEvents.size() > 0;
+    public Bitmap getBitmap() {
+        return targetBitmap;
     }
 
-    public Paint getDrawnPathPaint(int i) {
-        return pathPaintEvents.get(i).pathPaint;
+
+    private void appendDrawEvent(ShadowBitmap.DrawEvent event) {
+        shadowOf(targetBitmap).appendDrawEvent(event);
     }
 
-    public Path getDrawnPath(int i) {
-        return pathPaintEvents.get(i).drawnPath;
-    }
-
-    public CirclePaintHistoryEvent getDrawnCircle(int i) {
-        return circlePaintEvents.get(i);
-    }
-
-    public void resetCanvasHistory() {
-        pathPaintEvents.clear();
-        circlePaintEvents.clear();
-    }
-
-    public Paint getDrawnPaint() {
-        return drawnPaint;
-    }
-
-    private static class PathPaintHistoryEvent {
-        private Path drawnPath;
-        private Paint pathPaint;
-
-        PathPaintHistoryEvent(Path drawnPath, Paint pathPaint) {
-            this.drawnPath = drawnPath;
-            this.pathPaint = pathPaint;
-        }
-    }
-
-    public static class CirclePaintHistoryEvent {
-        public Paint paint;
-        public float centerX;
-        public float centerY;
-        public float radius;
-
-        private CirclePaintHistoryEvent(float centerX, float centerY, float radius, Paint paint) {
-            this.paint = paint;
-            this.centerX = centerX;
-            this.centerY = centerY;
-            this.radius = radius;
-        }
-    }
 }

@@ -16,7 +16,9 @@ import org.junit.runner.RunWith;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class BitmapDrawableTest {
@@ -33,7 +35,7 @@ public class BitmapDrawableTest {
     @Test
     public void getBitmap_shouldReturnBitmapUsedToDraw() throws Exception {
         BitmapDrawable drawable = (BitmapDrawable) resources.getDrawable(R.drawable.an_image);
-        assertEquals("Bitmap for resource:drawable/an_image", shadowOf(drawable.getBitmap()).getDescription());
+        assertEquals("Bitmap for resource: drawable/an_image", shadowOf(drawable.getBitmap()).getOrigin());
     }
 
     @Test
@@ -42,7 +44,7 @@ public class BitmapDrawableTest {
         Canvas canvas = new Canvas();
         drawable.draw(canvas);
 
-        assertEquals("Bitmap for resource:drawable/an_image", shadowOf(canvas).getDescription());
+        assertThat(shadowOf(canvas).getDescription(), containsString("Bitmap for resource: drawable/an_image"));
     }
     
     @Test
@@ -52,8 +54,9 @@ public class BitmapDrawableTest {
         Canvas canvas = new Canvas();
         drawable.draw(canvas);
 
-        assertEquals("Bitmap for resource:drawable/an_image with ColorMatrixColorFilter<1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0>",
-                shadowOf(canvas).getDescription());
+        String canvasDescription = shadowOf(canvas).getDescription();
+        assertThat(canvasDescription, containsString("Bitmap for resource: drawable/an_image"));
+        assertThat(canvasDescription, containsString("with color filter: ColorMatrixColorFilter<1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0>"));
     }
 
     @Test

@@ -1,17 +1,17 @@
 package com.xtremelabs.robolectric.shadows;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -19,15 +19,30 @@ import static org.junit.Assert.assertTrue;
 @RunWith(WithTestDefaultsRunner.class)
 public class BitmapTest {
     @Test
-    public void shouldCreateScaledBitmap() throws Exception {
-        Bitmap originalBitmap = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(originalBitmap).appendDescription("Original bitmap");
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 100, 200, false);
-        assertEquals("Original bitmap scaled to 100 x 200", shadowOf(scaledBitmap).getDescription());
-        assertEquals(100, scaledBitmap.getWidth());
-        assertEquals(200, scaledBitmap.getHeight());
+    public void defaultCtor_shouldSetTheOriginToDefault() throws Exception {
+        Bitmap emptyBitmap = Robolectric.newInstanceOf(Bitmap.class);
+        assertThat(shadowOf(emptyBitmap).getOrigin(), equalTo("Empty bitmap"));
     }
 
+    @Test
+    public void shouldAllowAppendingDrawEvents() throws Exception {
+        ShadowBitmap shadowBitmap = shadowOf(Robolectric.newInstanceOf(Bitmap.class));
+        Paint paint = new Paint();
+        shadowBitmap.appendDrawEvent(new ShadowBitmap.DrawEvent("command", "description", paint));
+
+        ShadowBitmap.DrawEvent drawEvent = shadowBitmap.getDrawEvents().get(0);
+        assertEquals("command", drawEvent.getCommand());
+        assertEquals("description", drawEvent.getDescription());
+        assertEquals(paint, drawEvent.getPaint());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void shouldEncapsulateDrawEvents() throws Exception {
+        ShadowBitmap shadowBitmap = shadowOf(Robolectric.newInstanceOf(Bitmap.class));
+        List<ShadowBitmap.DrawEvent> drawEvents = shadowBitmap.getDrawEvents();
+        drawEvents.add(null);
+    }
+    
     @Test
     public void equals_shouldCompareDescriptions() throws Exception {
         assertFalse(ShadowBitmap.create("bitmap A").equals(ShadowBitmap.create("bitmap B")));
@@ -48,56 +63,4 @@ public class BitmapTest {
         assertFalse(bitmapA1.equals(bitmapA2));
     }
 
-    @Test
-    public void shouldReceiveDescriptionWhenDrawingToCanvas() throws Exception {
-        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap1).appendDescription("Bitmap One");
-
-        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap2).appendDescription("Bitmap Two");
-
-        Canvas canvas = new Canvas(bitmap1);
-        canvas.drawBitmap(bitmap2, 0, 0, null);
-
-        assertEquals("Bitmap One\nBitmap Two", shadowOf(bitmap1).getDescription());
-    }
-
-    @Test
-    public void shouldReceiveDescriptionWhenDrawingToCanvasWithBitmapAndMatrixAndPaint() throws Exception {
-        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap1).appendDescription("Bitmap One");
-
-        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap2).appendDescription("Bitmap Two");
-
-        Canvas canvas = new Canvas(bitmap1);
-        canvas.drawBitmap(bitmap2, new Matrix(), null);
-
-        assertEquals("Bitmap One\nBitmap Two transformed by matrix", shadowOf(bitmap1).getDescription());
-    }
-
-    @Test
-    public void shouldReceiveDescriptionWhenDrawABitmapToCanvasWithAPaintEffect() throws Exception {
-        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap1).appendDescription("Bitmap One");
-
-        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap2).appendDescription("Bitmap Two");
-
-        Canvas canvas = new Canvas(bitmap1);
-        Paint paint = new Paint();
-        paint.setColorFilter(new ColorMatrixColorFilter(new ColorMatrix()));
-        canvas.drawBitmap(bitmap2, new Matrix(), paint);
-
-        assertEquals("Bitmap One\nBitmap Two with ColorMatrixColorFilter<1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0> transformed by matrix", shadowOf(bitmap1).getDescription());
-    }
-
-    @Test
-    public void visualize_shouldReturnDescription() throws Exception {
-        Bitmap bitmap = Robolectric.newInstanceOf(Bitmap.class);
-        shadowOf(bitmap).appendDescription("Bitmap One");
-
-        assertEquals("Bitmap One", Robolectric.visualize(bitmap));
-
-    }
 }
