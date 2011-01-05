@@ -100,19 +100,15 @@ public class AndroidTranslatorTest {
 
     @Test
     public void testDirectlyOn_Statics() throws Exception {
-        View.resolveSize(0, 0);
+        Robolectric.bindShadowClass(ShadowWranglerTest.ExceptionThrowingShadowView.class);
 
-        Exception e = null;
         try {
-            directlyOn(View.class);
             View.resolveSize(0, 0);
-        } catch (RuntimeException e1) {
-            e = e1;
+        } catch(RuntimeException expected) {
+            assertEquals("shadow resolveSize was called", expected.getMessage());
         }
-        assertNotNull(e);
-        assertEquals("Stub!", e.getMessage());
 
-        View.resolveSize(0, 0);
+        assertEquals(27, View.resolveSize(27, View.MeasureSpec.UNSPECIFIED));
     }
 
     @Test
@@ -238,6 +234,10 @@ public class AndroidTranslatorTest {
         @Implementation
         public boolean isClickable() {
             throw new RuntimeException("shadow isClickable was called");
+        }
+        @Implementation
+        public static int resolveSize(int size, int measureSpec) {
+            throw new RuntimeException("shadow resolveSize was called");
         }
     }
 }
