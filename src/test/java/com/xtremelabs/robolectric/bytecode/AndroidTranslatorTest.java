@@ -147,6 +147,19 @@ public class AndroidTranslatorTest {
         assertThat(e.getMessage(), equalTo("expected to perform direct call on <class android.view.View> but got <class android.widget.TextView>"));
     }
 
+    // same test repeated twice in order to check between-test behavior
+    @Test
+    public void shouldClearCallDirectlyStateBeforeEachTest() throws Exception {
+        assertNull(AndroidTranslator.ALL_VARS.get().callDirectly);
+        directlyOn(View.class);
+    }
+
+    @Test
+    public void shouldClearCallDirectlyStateAfterEachTest() throws Exception {
+        assertNull(AndroidTranslator.ALL_VARS.get().callDirectly);
+        directlyOn(View.class);
+    }
+
     @Test
     public void testDirectlyOn_CallTwiceChecking() throws Exception {
         directlyOn(View.class);
@@ -168,7 +181,11 @@ public class AndroidTranslatorTest {
 
     @Test
     public void shouldDelegateToObjectHashCodeIfShadowHasNone() throws Exception {
-        assertFalse(new View(null).hashCode() == 0);
+        Robolectric.bindShadowClass(ViewWithoutHashCodeMethod.class);
+        View view = new View(null);
+
+        assertEquals(view.hashCode(), directlyOn(view).hashCode());
+        assertTrue(view.hashCode() != 0);
     }
 
     @Test
@@ -250,5 +267,9 @@ public class AndroidTranslatorTest {
         public static ColorStateList getTextColors(Context context, TypedArray attrs) {
             return new ColorStateList(new int[0][0], new int[0]);
         }
+    }
+
+    @Implements(View.class)
+    public static class ViewWithoutHashCodeMethod {
     }
 }

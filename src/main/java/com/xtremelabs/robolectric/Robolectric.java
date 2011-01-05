@@ -54,6 +54,7 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.xtremelabs.robolectric.bytecode.AndroidTranslator;
 import com.xtremelabs.robolectric.bytecode.RobolectricInternals;
 import com.xtremelabs.robolectric.bytecode.ShadowWrangler;
 import com.xtremelabs.robolectric.internal.Implements;
@@ -318,6 +319,7 @@ public class Robolectric {
     }
 
     public static void resetStaticState() {
+        AndroidTranslator.ALL_VARS.remove();
         ShadowWrangler.getInstance().silence();
         Robolectric.application = new Application();
         ShadowBitmapFactory.reset();
