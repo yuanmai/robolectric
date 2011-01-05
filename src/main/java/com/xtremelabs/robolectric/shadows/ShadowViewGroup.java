@@ -10,7 +10,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.xtremelabs.robolectric.Robolectric.directlyOn;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
 /**
@@ -41,10 +40,8 @@ public class ShadowViewGroup extends ShadowView {
 
     @Implementation
     public void addView(View child) {
-        directlyOn(viewGroup).addView(null);
-
-//        children.add(child);
-//        shadowOf(child).parent = this;
+        children.add(child);
+        shadowOf(child).parent = this;
     }
 
     @Implementation

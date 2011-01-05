@@ -7,7 +7,6 @@ import android.graphics.drawable.Drawable;
 import android.test.ClassWithNoDefaultConstructor;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
@@ -31,14 +30,6 @@ import static org.mockito.Mockito.mock;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class AndroidTranslatorTest {
-    @Test
-    public void should() throws Exception {
-        LinearLayout linearLayout = new LinearLayout(null);
-        View child = new View(null);
-//        directlyOn(linearLayout).addView(child);
-        linearLayout.addView(child);
-    }
-
     @Test
     public void testStaticMethodsAreDelegated() throws Exception {
         Robolectric.bindShadowClass(ShadowAccountManagerForTests.class);
