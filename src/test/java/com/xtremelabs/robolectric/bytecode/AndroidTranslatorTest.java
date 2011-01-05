@@ -78,19 +78,24 @@ public class AndroidTranslatorTest {
 
     @Test
     public void testDirectlyOn() throws Exception {
+        Robolectric.bindShadowClass(ShadowWranglerTest.ExceptionThrowingShadowView.class);
         View view = new View(null);
-        view.bringToFront();
 
-        Exception e = null;
         try {
-            directlyOn(view).bringToFront();
-        } catch (RuntimeException e1) {
-            e = e1;
+            view.setClickable(true);
+        } catch(RuntimeException expected) {
+            assertEquals("shadow setClickable was called", expected.getMessage());
         }
-        assertNotNull(e);
-        assertEquals("Stub!", e.getMessage());
-
-        view.bringToFront();
+        try {
+            view.isClickable();
+        } catch(RuntimeException expected) {
+            assertEquals("shadow isClickable was called", expected.getMessage());
+        }
+        
+        directlyOn(view).setClickable(true);
+        assertTrue(directlyOn(view).isClickable());
+        directlyOn(view).setClickable(false);
+        assertFalse(directlyOn(view).isClickable());
     }
 
     @Test
@@ -222,5 +227,17 @@ public class AndroidTranslatorTest {
 
     @Implements(ClassWithNoDefaultConstructor.class)
     public static class ShadowClassWithNoDefaultConstructors {
+    }
+
+    @Implements(View.class)
+    public static class ExceptionThrowingShadowView {
+        @Implementation
+        public void setClickable(boolean clickable) {
+            throw new RuntimeException("shadow setClickable was called");
+        }
+        @Implementation
+        public boolean isClickable() {
+            throw new RuntimeException("shadow isClickable was called");
+        }
     }
 }
