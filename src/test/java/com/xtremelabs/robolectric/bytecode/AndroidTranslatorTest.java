@@ -2,6 +2,8 @@ package com.xtremelabs.robolectric.bytecode;
 
 import android.accounts.AccountManager;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.test.ClassWithNoDefaultConstructor;
@@ -130,7 +132,8 @@ public class AndroidTranslatorTest {
 
     @Test
     public void testDirectlyOn_Statics_InstanceChecking() throws Exception {
-        TextView.getTextColors(null, null);
+        Robolectric.bindShadowClass(TextViewWithDummyGetTextColorsMethod.class);
+        assertNotNull(TextView.getTextColors(null, null)); // the real implementation would asplode
 
         Exception e = null;
         try {
@@ -139,6 +142,7 @@ public class AndroidTranslatorTest {
         } catch (RuntimeException e1) {
             e = e1;
         }
+
         assertNotNull(e);
         assertThat(e.getMessage(), equalTo("expected to perform direct call on <class android.view.View> but got <class android.widget.TextView>"));
     }
@@ -238,6 +242,13 @@ public class AndroidTranslatorTest {
         @Implementation
         public static int resolveSize(int size, int measureSpec) {
             throw new RuntimeException("shadow resolveSize was called");
+        }
+    }
+
+    @Implements(TextView.class)
+    public static class TextViewWithDummyGetTextColorsMethod {
+        public static ColorStateList getTextColors(Context context, TypedArray attrs) {
+            return new ColorStateList(new int[0][0], new int[0]);
         }
     }
 }
