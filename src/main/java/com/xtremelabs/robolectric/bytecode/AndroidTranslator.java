@@ -87,7 +87,7 @@ public class AndroidTranslator implements Translator {
 
         CtClass ctClass = classPool.get(className);
         if (needsStripping && !ctClass.hasAnnotation(DoNotStrip.class)) {
-            System.err.println("           onLoad doctoring " + className);
+//            System.err.println("           onLoad doctoring " + className);
 
             int modifiers = ctClass.getModifiers();
             if (Modifier.isFinal(modifiers)) {

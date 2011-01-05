@@ -57,7 +57,7 @@ public class RobolectricClassLoader extends javassist.Loader {
                             || name.equals(Vars.class.getName())
             );
 
-            System.err.println(name + " should come from class loader? " + shouldComeFromThisClassLoader);
+//            System.err.println(name + " should come from class loader? " + shouldComeFromThisClassLoader);
 
             Class<?> theClass;
             if (shouldComeFromThisClassLoader) {
