@@ -19,9 +19,11 @@ package com.xtremelabs.robolectric.shadows;
 import android.util.FloatMath;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
+import com.xtremelabs.robolectric.internal.Optional;
 
 @SuppressWarnings({"UnusedDeclaration"})
 @Implements(FloatMath.class)
+@Optional
 public class ShadowFloatMath {
     @Implementation
     public static float floor(float value) {

@@ -57,6 +57,7 @@ import com.google.android.maps.MapView;
 import com.xtremelabs.robolectric.bytecode.RobolectricInternals;
 import com.xtremelabs.robolectric.bytecode.ShadowWrangler;
 import com.xtremelabs.robolectric.internal.Implements;
+import com.xtremelabs.robolectric.internal.Optional;
 import com.xtremelabs.robolectric.shadows.FakeHttpLayer;
 import com.xtremelabs.robolectric.shadows.ShadowAbsSpinner;
 import com.xtremelabs.robolectric.shadows.ShadowAbsoluteLayout;
@@ -190,7 +191,10 @@ public class Robolectric {
             ShadowWrangler.getInstance().bindShadowClass(realClass.value(), shadowClass);
         } catch (TypeNotPresentException ignored) {
             //this allows users of the robolectric.jar file to use the non-Google APIs version of the api
-            System.out.println("Warning: an error occurred while binding shadow class: " + shadowClass.getSimpleName());
+            boolean isOptional = shadowClass.getAnnotation(Optional.class) != null;
+            if (!isOptional) {
+                System.out.println("Warning: an error occurred while binding shadow class: " + shadowClass.getSimpleName());
+            }
         }
     }
 
