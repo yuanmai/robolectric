@@ -1,15 +1,24 @@
 package com.xtremelabs.robolectric;
 
 import android.app.Application;
+import android.view.View;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.model.InitializationError;
 
+import static com.xtremelabs.robolectric.Robolectric.directlyOn;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(RobolectricTestRunnerTest.RunnerForTesting.class)
 public class RobolectricTestRunnerTest {
+
+    @Test(expected=IllegalStateException.class)
+    public void shouldNotAllowDanglingCallsToDirectlyOn() throws Exception {
+        directlyOn(View.class);
+    }
 
     @Test
     public void shouldInitializeAndBindApplicationButNotCallOnCreate() throws Exception {

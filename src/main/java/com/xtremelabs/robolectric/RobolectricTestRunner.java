@@ -2,6 +2,7 @@ package com.xtremelabs.robolectric;
 
 import android.app.Application;
 import android.net.Uri__FromAndroid;
+import com.xtremelabs.robolectric.bytecode.AndroidTranslator;
 import com.xtremelabs.robolectric.bytecode.ClassHandler;
 import com.xtremelabs.robolectric.bytecode.RobolectricClassLoader;
 import com.xtremelabs.robolectric.bytecode.ShadowWrangler;
@@ -250,6 +251,14 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
     }
 
     /*
+     * Wraps the test execution with code that checks for outstanding direct calls just before the check for expected
+     * exceptions. This lets us write tests that expect this exception.
+     */
+    @Override protected Statement methodInvoker(FrameworkMethod method, Object test) {
+        return new ExpectNoOutstandingDirectCalls(super.methodInvoker(method, test));
+    }
+
+    /*
      * Called before each test method is run. Sets up the simulation of the Android runtime environment.
      */
     @Override public void internalBeforeTest(Method method) {
@@ -403,6 +412,23 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
             int result = projectRoot != null ? projectRoot.hashCode() : 0;
             result = 31 * result + (resourceDirectory != null ? resourceDirectory.hashCode() : 0);
             return result;
+        }
+    }
+
+    private static class ExpectNoOutstandingDirectCalls extends Statement {
+        private final Statement next;
+
+        public ExpectNoOutstandingDirectCalls(Statement next) {
+            this.next = next;
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            next.evaluate();
+            Object directCallee = AndroidTranslator.ALL_VARS.get().callDirectly;
+            if (directCallee != null) {
+                throw new IllegalStateException("Expected a direct call to <" + directCallee + "> that never happened.");
+            }
         }
     }
 }
