@@ -28,11 +28,11 @@ public class ClassCache {
                     }
                 }
             }
-//            if (cacheVersion != expectedCacheVersion) {
+            if (cacheVersion != expectedCacheVersion) {
                 cacheJarFile.delete();
-//            } else {
-//                readEntries(cacheFile);
-//            }
+            } else {
+                readEntries(cacheFile);
+            }
         } catch (IOException e) {
             // no problem
         }
