@@ -6,18 +6,8 @@ public class RobolectricInternals {
     // initialized via magic by AndroidTranslator
     private static ClassHandler classHandler;
 
-    private static final ThreadLocal<Vars> ALL_VARS = new ThreadLocal<Vars>() {
-        @Override protected Vars initialValue() {
-            return new Vars();
-        }
-    };
-
-    private static class Vars {
-        Object callDirectly;
-    }
-
     public static <T> T directlyOn(T shadowedObject) {
-        Vars vars = ALL_VARS.get();
+        Vars vars = AndroidTranslator.ALL_VARS.get();
 
         if (vars.callDirectly != null) {
             Object expectedInstance = vars.callDirectly;
@@ -30,7 +20,7 @@ public class RobolectricInternals {
     }
 
     public static boolean shouldCallDirectly(Object directInstance) {
-        Vars vars = ALL_VARS.get();
+        Vars vars = AndroidTranslator.ALL_VARS.get();
         if (vars.callDirectly != null) {
             if (vars.callDirectly != directInstance) {
                 Object expectedInstance = vars.callDirectly;

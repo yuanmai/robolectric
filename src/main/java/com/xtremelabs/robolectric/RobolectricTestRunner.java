@@ -5,6 +5,7 @@ import android.net.Uri__FromAndroid;
 import com.xtremelabs.robolectric.bytecode.ClassHandler;
 import com.xtremelabs.robolectric.bytecode.RobolectricClassLoader;
 import com.xtremelabs.robolectric.bytecode.ShadowWrangler;
+import com.xtremelabs.robolectric.bytecode.Vars;
 import com.xtremelabs.robolectric.internal.RealObject;
 import com.xtremelabs.robolectric.internal.RobolectricTestRunnerInterface;
 import com.xtremelabs.robolectric.res.ResourceLoader;
@@ -24,6 +25,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +38,7 @@ import java.util.Map;
 public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements RobolectricTestRunnerInterface {
     private static RobolectricClassLoader defaultLoader;
     private static Map<RootAndDirectory, ResourceLoader> resourceLoaderForRootAndDirectory = new HashMap<RootAndDirectory, ResourceLoader>();
+    public static final boolean USE_REAL_ANDROID_SOURCES = true;
 
     // fields in the RobolectricTestRunner in the original ClassLoader
     private RobolectricClassLoader classLoader;
@@ -46,9 +51,26 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
 
     private static RobolectricClassLoader getDefaultLoader() {
         if (defaultLoader == null) {
-            defaultLoader = new RobolectricClassLoader(ShadowWrangler.getInstance());
+            if (USE_REAL_ANDROID_SOURCES) {
+                URLClassLoader realAndroidJarsClassLoader = new URLClassLoader(new URL[]{
+                        parseUrl("file:///Users/pivotal/android/add-ons/addon_google_apis_google_inc_8/libs/maps.jar"),
+                        parseUrl("file:///Volumes/AndroidSource/out/host/common/obj/JAVA_LIBRARIES/layoutlib_intermediates/javalib.jar"),
+                        parseUrl("file:///Volumes/AndroidSource/out/host/common/obj/JAVA_LIBRARIES/layoutlib_api_intermediates/javalib.jar")
+                }, null);
+                defaultLoader = new RobolectricClassLoader(realAndroidJarsClassLoader, ShadowWrangler.getInstance());
+            } else {
+                defaultLoader = new RobolectricClassLoader(ShadowWrangler.getInstance());
+            }
         }
         return defaultLoader;
+    }
+
+    private static URL parseUrl(String url) {
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -152,6 +174,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
             delegateLoadingOf(RobolectricTestRunnerInterface.class.getName());
             delegateLoadingOf(RealObject.class.getName());
             delegateLoadingOf(ShadowWrangler.class.getName());
+            delegateLoadingOf(Vars.class.getName());
 
             Class<?> delegateClass = classLoader.bootstrap(this.getClass());
             try {

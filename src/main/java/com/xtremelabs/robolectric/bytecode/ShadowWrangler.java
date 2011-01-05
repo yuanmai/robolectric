@@ -1,5 +1,7 @@
 package com.xtremelabs.robolectric.bytecode;
 
+import com.xtremelabs.robolectric.Robolectric;
+import com.xtremelabs.robolectric.RobolectricTestRunner;
 import com.xtremelabs.robolectric.internal.RealObject;
 import com.xtremelabs.robolectric.util.Join;
 import javassist.CannotCompileException;
@@ -8,8 +10,17 @@ import javassist.CtField;
 import javassist.NotFoundException;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ShadowWrangler implements ClassHandler {
     public static final String SHADOW_FIELD_NAME = "__shadow__";
@@ -69,18 +80,37 @@ public class ShadowWrangler implements ClassHandler {
     @Override
     public Object methodInvoked(Class clazz, String methodName, Object instance, String[] paramTypes, Object[] params) throws Exception {
         InvocationPlan invocationPlan = new InvocationPlan(clazz, methodName, instance, paramTypes);
-        if (!invocationPlan.prepare()) {
-            reportNoShadowMethodFound(clazz, methodName, paramTypes);
-            return null;
-        }
-
         try {
+            if (!invocationPlan.prepare()) {
+                if (RobolectricTestRunner.USE_REAL_ANDROID_SOURCES) {
+                    return delegateBackToReal(invocationPlan, params);
+                } else {
+                    reportNoShadowMethodFound(clazz, methodName, paramTypes);
+                    return null;
+                }
+            }
+
             return invocationPlan.getMethod().invoke(invocationPlan.getShadow(), params);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(invocationPlan.getShadow().getClass().getName() + " is not assignable from " +
                     invocationPlan.getDeclaredShadowClass().getName(), e);
         } catch (InvocationTargetException e) {
             throw stripStackTrace((Exception) e.getCause());
+        }
+    }
+
+    private Object delegateBackToReal(InvocationPlan invocationPlan, Object[] params) throws InvocationTargetException, IllegalAccessException {
+        if (invocationPlan.methodName.startsWith("<") || invocationPlan.methodName.equals("__constructor__")) {
+            return null;
+        }
+
+        try {
+            Method method = invocationPlan.clazz.getDeclaredMethod(invocationPlan.methodName, invocationPlan.paramClasses);
+            method.setAccessible(true);
+            Robolectric.directlyOn(invocationPlan.instance == null ? invocationPlan.clazz : invocationPlan.instance);
+            return method.invoke(invocationPlan.instance, params);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -260,6 +290,7 @@ public class ShadowWrangler implements ClassHandler {
         private String methodName;
         private Object instance;
         private String[] paramTypes;
+        private Class<?>[] paramClasses;
         private Class<?> declaredShadowClass;
         private Method method;
         private Object shadow;
@@ -285,7 +316,7 @@ public class ShadowWrangler implements ClassHandler {
         }
 
         public boolean prepare() {
-            Class<?>[] paramClasses = getParamClasses();
+            paramClasses = getParamClasses();
 
             Class<?> originalClass = loadClass(clazz.getName(), classLoader);
 
