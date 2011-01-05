@@ -194,7 +194,7 @@ public class AndroidTranslator implements Translator {
             }
         }
 
-        System.err.println(ctClass.getName() + " hasDefault = " + hasDefault);
+        //System.err.println(ctClass.getName() + " hasDefault = " + hasDefault);
 
         if (!hasDefault) {
             String methodBody = generateConstructorBody(ctClass, new CtClass[0]);
@@ -233,37 +233,14 @@ public class AndroidTranslator implements Translator {
         return Modifier.toString(ctMethod.getModifiers()) + " " + ctMethod.getReturnType().getSimpleName() + " " + ctMethod.getLongName();
     }
 
-    private void fixMethod(CtClass ctClass, final CtMethod ctMethod, boolean wasFoundInClass) throws NotFoundException {
+    private void fixMethod(CtClass ctClass, final CtMethod ctMethod, boolean isDeclaredOnClass) throws NotFoundException {
         String describeBefore = describe(ctMethod);
         try {
             CtClass declaringClass = ctMethod.getDeclaringClass();
             int originalModifiers = ctMethod.getModifiers();
 
-            if (wasFoundInClass) {
-                ctMethod.instrument(new ExprEditor() {
-                    @Override
-                    public void edit(MethodCall m) throws CannotCompileException {
-                        if (m.isSuper() && m.getMethodName().equals(ctMethod.getName())) {
-                            StringBuilder buf = new StringBuilder();
-                            try {
-                                for (int i = 0; i < ctMethod.getParameterTypes().length; i++) {
-                                    if (buf.length() > 0) {
-                                        buf.append(", ");
-                                    }
-                                    buf.append("$");
-                                    buf.append(i + 1);
-                                }
-
-                                boolean returnsVoid = ctMethod.getReturnType().equals(CtClass.voidType);
-                                m.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
-                                        (returnsVoid ? "" : "$_ = ") + "super." + m.getMethodName() + "(" + buf.toString() + ");");
-                            } catch (NotFoundException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        super.edit(m);
-                    }
-                });
+            if (isDeclaredOnClass) {
+                fixCallsToSameMethodOnSuper(ctMethod);
             }
 
             boolean wasNative = Modifier.isNative(originalModifiers);
@@ -282,7 +259,7 @@ public class AndroidTranslator implements Translator {
             if (wasFinal) {
                 newModifiers = Modifier.clear(newModifiers, Modifier.FINAL);
             }
-            if (wasFoundInClass) {
+            if (isDeclaredOnClass) {
                 ctMethod.setModifiers(newModifiers);
             }
 
@@ -307,9 +284,9 @@ public class AndroidTranslator implements Translator {
 //            }
 
             boolean isStatic = Modifier.isStatic(originalModifiers);
-            String methodBody = generateMethodBody(ctClass, ctMethod, wasNative, wasAbstract, returnCtClass, returnType, isStatic, !wasFoundInClass);
+            String methodBody = generateMethodBody(ctClass, ctMethod, wasNative, wasAbstract, returnCtClass, returnType, isStatic, !isDeclaredOnClass);
 
-            if (!wasFoundInClass) {
+            if (!isDeclaredOnClass) {
                 CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + generateCallToSuper(methodName, paramTypes) + "\n}");
                 newMethod.setModifiers(newModifiers);
                 if (wasDeclaredInClass) {
@@ -326,6 +303,33 @@ public class AndroidTranslator implements Translator {
         } catch (Exception e) {
             throw new RuntimeException("problem instrumenting " + describeBefore, e);
         }
+    }
+
+    private void fixCallsToSameMethodOnSuper(final CtMethod ctMethod) throws CannotCompileException {
+        ctMethod.instrument(new ExprEditor() {
+            @Override
+            public void edit(MethodCall call) throws CannotCompileException {
+                if (call.isSuper() && call.getMethodName().equals(ctMethod.getName())) {
+                    StringBuilder buf = new StringBuilder();
+                    try {
+                        for (int i = 0; i < ctMethod.getParameterTypes().length; i++) {
+                            if (buf.length() > 0) {
+                                buf.append(", ");
+                            }
+                            buf.append("$");
+                            buf.append(i + 1);
+                        }
+
+                        boolean returnsVoid = ctMethod.getReturnType().equals(CtClass.voidType);
+                        call.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
+                                (returnsVoid ? "" : "$_ = ") + "super." + call.getMethodName() + "(" + buf.toString() + ");");
+                    } catch (NotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                super.edit(call);
+            }
+        });
     }
 
     private CtMethod makeNewMethod(CtClass ctClass, CtMethod ctMethod, CtClass returnCtClass, String methodName, CtClass[] paramTypes, String methodBody) throws CannotCompileException, NotFoundException {
