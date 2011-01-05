@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -58,7 +59,7 @@ public class RobolectricTest {
         aView.findViewById(27);
         // No shadow here... should be logged
         output = buff.toString();
-        assertEquals("No Shadow method found for View.findViewById(int)\n", output);
+        assertThat(output, startsWith("No Shadow method found for View.findViewById(int)\n"));
     }
 
     @Test // This is nasty because it depends on the test above having run first in order to fail

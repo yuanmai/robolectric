@@ -82,10 +82,10 @@ public class ShadowWrangler implements ClassHandler {
         InvocationPlan invocationPlan = new InvocationPlan(clazz, methodName, instance, paramTypes);
         try {
             if (!invocationPlan.prepare()) {
+                reportNoShadowMethodFound(clazz, methodName, paramTypes);
                 if (RobolectricTestRunner.USE_REAL_ANDROID_SOURCES) {
                     return delegateBackToReal(invocationPlan, params);
                 } else {
-                    reportNoShadowMethodFound(clazz, methodName, paramTypes);
                     return null;
                 }
             }
