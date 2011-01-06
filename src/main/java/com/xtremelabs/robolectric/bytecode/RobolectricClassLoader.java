@@ -24,7 +24,8 @@ public class RobolectricClassLoader extends javassist.Loader {
         classCache = new ClassCache(
                 RobolectricTestRunner.USE_REAL_ANDROID_SOURCES
                         ? "tmp/cached-robolectrified-REAL-ANDROID-classes.jar"
-                        : "tmp/cached-robolectric-classes.jar", AndroidTranslator.CACHE_VERSION);
+                        : "tmp/cached-robolectric-classes.jar",
+                AndroidTranslator.CACHE_VERSION);
         try {
             ClassPool classPool = new ClassPool();
             classPool.appendClassPath(new LoaderClassPath(classLoader));
