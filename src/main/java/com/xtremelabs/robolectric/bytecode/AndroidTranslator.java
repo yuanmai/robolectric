@@ -27,7 +27,7 @@ public class AndroidTranslator implements Translator {
      * IMPORTANT -- increment this number when the bytecode generated for modified classes changes
      * so the cache file can be invalidated.
      */
-    public static final int CACHE_VERSION = 21;
+    public static final int CACHE_VERSION = 22;
 
     private static final List<ClassHandler> CLASS_HANDLERS = new ArrayList<ClassHandler>();
     public static final ThreadLocal<Vars> ALL_VARS = new ThreadLocal<Vars>() {
@@ -367,7 +367,7 @@ public class AndroidTranslator implements Translator {
             methodBody = generateMethodBody(ctClass, ctMethod, returnCtClass, returnType, aStatic, shouldGenerateCallToSuper);
         }
 
-        if (wasNative) {
+        if (wasNative && !shouldGenerateCallToSuper) {
             methodBody += returnType.isVoid() ? "" : "return " + returnType.defaultReturnString() + ";";
         }
         return methodBody;

@@ -427,7 +427,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
             next.evaluate();
             Object directCallee = AndroidTranslator.ALL_VARS.get().callDirectly;
             if (directCallee != null) {
-                throw new IllegalStateException("Expected a direct call to <" + directCallee + "> that never happened.");
+                throw new IllegalStateException("Expected a direct call to a shadowed method on <" + directCallee + "> that never happened. (Was a non-shadowed method called instead?)");
             }
         }
     }

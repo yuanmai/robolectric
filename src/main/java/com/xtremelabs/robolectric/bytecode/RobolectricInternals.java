@@ -21,18 +21,16 @@ public class RobolectricInternals {
 
     public static boolean shouldCallDirectly(Object directInstance) {
         Vars vars = AndroidTranslator.ALL_VARS.get();
-        if (vars.callDirectly != null) {
-            if (vars.callDirectly != directInstance) {
-                Object expectedInstance = vars.callDirectly;
-                vars.callDirectly = null;
-                throw new RuntimeException("expected to perform direct call on <" + expectedInstance + "> but got <" + directInstance + ">");
-            } else {
-                vars.callDirectly = null;
-            }
+        Object expectedInstance = vars.callDirectly;
+        vars.callDirectly = null;
+
+        if (directInstance == expectedInstance) {
             return true;
-        } else {
+        }
+        if (expectedInstance == null) {
             return false;
         }
+        throw new RuntimeException("expected to perform direct call on <" + expectedInstance + "> but got <" + directInstance + ">");
     }
 
     @SuppressWarnings({"UnusedDeclaration"})

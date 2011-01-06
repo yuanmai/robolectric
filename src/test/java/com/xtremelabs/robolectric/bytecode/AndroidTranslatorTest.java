@@ -148,13 +148,13 @@ public class AndroidTranslatorTest {
     }
 
     // same test repeated twice in order to check between-test behavior
-    @Test
+    @Test(expected=IllegalStateException.class)
     public void shouldClearCallDirectlyStateBeforeEachTest() throws Exception {
         assertNull(AndroidTranslator.ALL_VARS.get().callDirectly);
         directlyOn(View.class);
     }
 
-    @Test
+    @Test(expected=IllegalStateException.class)
     public void shouldClearCallDirectlyStateAfterEachTest() throws Exception {
         assertNull(AndroidTranslator.ALL_VARS.get().callDirectly);
         directlyOn(View.class);
