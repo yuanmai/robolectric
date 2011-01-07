@@ -55,8 +55,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
             if (USE_REAL_ANDROID_SOURCES) {
                 URLClassLoader realAndroidJarsClassLoader = new URLClassLoader(new URL[]{
                         parseUrl("file:///Users/pivotal/android/add-ons/addon_google_apis_google_inc_8/libs/maps.jar"),
-                        parseUrl("file:///Volumes/AndroidSource/out/host/common/obj/JAVA_LIBRARIES/layoutlib_intermediates/javalib.jar"),
-                        parseUrl("file:///Volumes/AndroidSource/out/host/common/obj/JAVA_LIBRARIES/layoutlib_api_intermediates/javalib.jar")
+                        parseUrl("file:///Volumes/AndroidSource/out/target/common/obj/JAVA_LIBRARIES/framework_intermediates/classes.jar")
                 }, null);
                 defaultLoader = new RobolectricClassLoader(realAndroidJarsClassLoader, ShadowWrangler.getInstance());
             } else {

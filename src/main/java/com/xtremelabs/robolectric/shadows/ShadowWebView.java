@@ -8,7 +8,7 @@ import com.xtremelabs.robolectric.internal.Implements;
 
 @SuppressWarnings({"UnusedDeclaration"})
 @Implements(WebView.class)
-public class ShadowWebView extends ShadowTextView {
+public class ShadowWebView extends ShadowAbsoluteLayout {
 
     private String lastUrl;
 

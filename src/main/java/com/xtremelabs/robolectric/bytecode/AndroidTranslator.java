@@ -183,12 +183,13 @@ public class AndroidTranslator implements Translator {
     private void fixConstructors(CtClass ctClass) throws CannotCompileException, NotFoundException {
         boolean hasDefault = false;
 
-        for (CtConstructor ctConstructor : ctClass.getConstructors()) {
+        for (CtConstructor ctConstructor : ctClass.getDeclaredConstructors()) {
             try {
                 fixConstructor(ctClass, hasDefault, ctConstructor);
 
                 if (ctConstructor.getParameterTypes().length == 0) {
                     hasDefault = true;
+                    ctConstructor.setModifiers(Modifier.setPublic(ctConstructor.getModifiers()));
                 }
             } catch (Exception e) {
                 throw new RuntimeException("problem instrumenting " + ctConstructor, e);
