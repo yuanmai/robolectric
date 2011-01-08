@@ -1,6 +1,7 @@
 package com.xtremelabs.robolectric.bytecode;
 
 import android.view.View;
+import android.widget.TextView;
 import javassist.ClassPool;
 import javassist.CtClass;
 import org.junit.Before;
@@ -83,6 +84,23 @@ public class AndroidTranslatorUnitTest {
     public void shouldGenerateMethodBodyForEquals() throws Exception {
         androidTranslator.start(classPool);
         
+        CtClass subCtClass = classPool.get(TextView.class.getName());
+        CtClass objectCtClass = classPool.get(Object.class.getName());
+        String methodBody = androidTranslator.generateMethodBody(
+                subCtClass, objectCtClass.getDeclaredMethod("equals", new CtClass[]{objectCtClass}),
+                subCtClass, Type.BOOLEAN, false, true);
+        assertEquals("if (!com.xtremelabs.robolectric.bytecode.RobolectricInternals.shouldCallDirectly(this)) {\n" +
+                "Object x = com.xtremelabs.robolectric.bytecode.RobolectricInternals.methodInvoked(\n" +
+                "  android.widget.TextView.class, \"equals\", this, new String[] {\"java.lang.Object\"}, new Object[] {com.xtremelabs.robolectric.bytecode.RobolectricInternals.autobox($1)});\n" +
+                "if (x != null) return ((java.lang.Boolean) x).booleanValue();\n" +
+                "com.xtremelabs.robolectric.bytecode.RobolectricInternals.directlyOn($0);\n" +
+                "return super.equals($1);}\n", methodBody);
+    }
+
+    @Test
+    public void shouldGenerateMethodBodyForEqualsWithoutDirectBypassIfSuperclassIsObject() throws Exception {
+        androidTranslator.start(classPool);
+
         CtClass subCtClass = classPool.get(View.class.getName());
         CtClass objectCtClass = classPool.get(Object.class.getName());
         String methodBody = androidTranslator.generateMethodBody(

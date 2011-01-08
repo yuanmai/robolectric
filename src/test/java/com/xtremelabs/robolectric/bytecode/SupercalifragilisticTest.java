@@ -32,6 +32,17 @@ public class SupercalifragilisticTest {
         assertTrue(new SubClass().toString() != null);
     }
     
+    @Test
+    public void shouldCorrectlyImplementToStringEtc() throws Exception {
+        assertEquals("here i am!", new SubHasToString().toString());
+    }
+
+    @Test
+    public void shouldCorrectlyImplementToStringEtcForSubSubclasses() throws Exception {
+        Robolectric.bindShadowClass(ShadowSubSubHasToString.class);
+        assertEquals("shadowed here i am!", new SubSubHasToString().toString());
+    }
+
     @Instrument
     static public class SuperClass {
         String method(String arg) {
@@ -64,6 +75,31 @@ public class SupercalifragilisticTest {
         @Implementation
         String method(String arg) {
             return "sub shadowed[" + directlyOn(subClass).method(arg) + "]";
+        }
+    }
+
+    @Instrument
+    static public class SubHasToString extends HasToString {
+    }
+
+    @Instrument
+    static public class SubSubHasToString extends SubHasToString {
+    }
+
+    @Instrument
+    static public class HasToString {
+        @Override
+        public String toString() {
+            return "here i am!";
+        }
+    }
+
+    @Implements(SupercalifragilisticTest.SubSubHasToString.class)
+    static public class ShadowSubSubHasToString {
+        @RealObject SubSubHasToString subSubHasToString;
+        @Override
+        public String toString() {
+            return "shadowed " + directlyOn(subSubHasToString).toString();
         }
     }
 }

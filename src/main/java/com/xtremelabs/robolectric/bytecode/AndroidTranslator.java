@@ -20,7 +20,9 @@ import javassist.expr.MethodCall;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings({"UnusedDeclaration"})
 public class AndroidTranslator implements Translator {
@@ -224,16 +226,23 @@ public class AndroidTranslator implements Translator {
     }
 
     private void fixMethods(CtClass ctClass) throws NotFoundException, CannotCompileException {
+        Set<String> instrumentedMethods = new HashSet<String>();
+
         for (CtMethod ctMethod : ctClass.getDeclaredMethods()) {
             fixMethod(ctClass, ctMethod, true);
+            instrumentedMethods.add(ctMethod.getName() + ctMethod.getSignature());
         }
-        CtMethod equalsMethod = ctClass.getMethod("equals", "(Ljava/lang/Object;)Z");
-        CtMethod hashCodeMethod = ctClass.getMethod("hashCode", "()I");
-        CtMethod toStringMethod = ctClass.getMethod("toString", "()Ljava/lang/String;");
 
-        fixMethod(ctClass, equalsMethod, false);
-        fixMethod(ctClass, hashCodeMethod, false);
-        fixMethod(ctClass, toStringMethod, false);
+        fixMethodIfNotAlreadyFixed(instrumentedMethods, ctClass, "equals", "(Ljava/lang/Object;)Z");
+        fixMethodIfNotAlreadyFixed(instrumentedMethods, ctClass, "hashCode", "()I");
+        fixMethodIfNotAlreadyFixed(instrumentedMethods, ctClass, "toString", "()Ljava/lang/String;");
+    }
+
+    private void fixMethodIfNotAlreadyFixed(Set<String> instrumentedMethods, CtClass ctClass, String methodName, String signature) throws NotFoundException {
+        if (instrumentedMethods.add(methodName + signature)) {
+            CtMethod equalsMethod = ctClass.getMethod(methodName, signature);
+            fixMethod(ctClass, equalsMethod, false);
+        }
     }
 
     private String describe(CtMethod ctMethod) throws NotFoundException {
@@ -254,6 +263,9 @@ public class AndroidTranslator implements Translator {
             boolean wasFinal = Modifier.isFinal(originalModifiers);
             boolean wasAbstract = Modifier.isAbstract(originalModifiers);
             boolean wasDeclaredInClass = ctClass == declaringClass;
+//            if (wasDeclaredInClass != isDeclaredOnClass) {
+//                throw new IllegalStateException(ctMethod.getLongName());
+//            }
 
             if (wasFinal && ctClass.isEnum()) {
                 return;
@@ -294,7 +306,7 @@ public class AndroidTranslator implements Translator {
             String methodBody = generateMethodBody(ctClass, ctMethod, wasNative, wasAbstract, returnCtClass, returnType, isStatic, !isDeclaredOnClass);
 
             if (!isDeclaredOnClass) {
-                CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + generateCallToSuper(ctMethod) + "\n}");
+                CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + generateCallToSuper(ctClass, ctMethod) + "\n}");
                 newMethod.setModifiers(newModifiers);
                 if (wasDeclaredInClass) {
                     ctMethod.insertBefore("{\n" + methodBody + "}\n");
@@ -350,8 +362,9 @@ public class AndroidTranslator implements Translator {
                 ctClass);
     }
 
-    public String generateCallToSuper(CtMethod ctMethod) throws NotFoundException {
-        return (ctMethod.getDeclaringClass().equals(objectCtClass) ? "" : RobolectricInternals.class.getName() + ".directlyOn($0);\n") +
+    public String generateCallToSuper(CtClass ctClass, CtMethod ctMethod) throws NotFoundException {
+        boolean superMethodIsInstrumented = !ctClass.getSuperclass().equals(objectCtClass);
+        return (superMethodIsInstrumented ? RobolectricInternals.class.getName() + ".directlyOn($0);\n" : "") +
                 "return super." + ctMethod.getName() + "(" + makeParameterReplacementList(ctMethod.getParameterTypes().length) + ");";
     }
 
@@ -423,7 +436,7 @@ public class AndroidTranslator implements Translator {
             buf.append(returnType.unboxString());
             buf.append(";\n");
             if (shouldGenerateCallToSuper) {
-                buf.append(generateCallToSuper(ctMethod));
+                buf.append(generateCallToSuper(ctClass, ctMethod));
             } else {
                 buf.append("return ");
                 buf.append(returnType.defaultReturnString());
