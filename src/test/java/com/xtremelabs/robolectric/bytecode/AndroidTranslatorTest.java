@@ -6,7 +6,6 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.test.ClassWithNoDefaultConstructor;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -16,6 +15,7 @@ import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
+import com.xtremelabs.robolectric.internal.Instrument;
 import com.xtremelabs.robolectric.shadows.ShadowItemizedOverlay;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -271,5 +271,12 @@ public class AndroidTranslatorTest {
 
     @Implements(View.class)
     public static class ViewWithoutHashCodeMethod {
+    }
+
+    @Instrument
+    @SuppressWarnings({"UnusedDeclaration"})
+    public static class ClassWithNoDefaultConstructor {
+        ClassWithNoDefaultConstructor(String string) {
+        }
     }
 }

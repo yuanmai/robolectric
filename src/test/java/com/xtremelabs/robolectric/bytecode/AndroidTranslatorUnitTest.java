@@ -1,5 +1,6 @@
 package com.xtremelabs.robolectric.bytecode;
 
+import android.view.View;
 import javassist.ClassPool;
 import javassist.CtClass;
 import org.junit.Before;
@@ -80,13 +81,16 @@ public class AndroidTranslatorUnitTest {
 
     @Test
     public void shouldGenerateMethodBodyForEquals() throws Exception {
-        CtClass ctClass = classPool.get("java.lang.Object");
+        androidTranslator.start(classPool);
+        
+        CtClass subCtClass = classPool.get(View.class.getName());
+        CtClass objectCtClass = classPool.get(Object.class.getName());
         String methodBody = androidTranslator.generateMethodBody(
-                ctClass, ctClass.getDeclaredMethod("equals", new CtClass[]{ctClass}),
-                ctClass, Type.BOOLEAN, false, true);
+                subCtClass, objectCtClass.getDeclaredMethod("equals", new CtClass[]{objectCtClass}),
+                subCtClass, Type.BOOLEAN, false, true);
         assertEquals("if (!com.xtremelabs.robolectric.bytecode.RobolectricInternals.shouldCallDirectly(this)) {\n" +
                 "Object x = com.xtremelabs.robolectric.bytecode.RobolectricInternals.methodInvoked(\n" +
-                "  java.lang.Object.class, \"equals\", this, new String[] {\"java.lang.Object\"}, new Object[] {com.xtremelabs.robolectric.bytecode.RobolectricInternals.autobox($1)});\n" +
+                "  android.view.View.class, \"equals\", this, new String[] {\"java.lang.Object\"}, new Object[] {com.xtremelabs.robolectric.bytecode.RobolectricInternals.autobox($1)});\n" +
                 "if (x != null) return ((java.lang.Boolean) x).booleanValue();\n" +
                 "return super.equals($1);}\n", methodBody);
     }

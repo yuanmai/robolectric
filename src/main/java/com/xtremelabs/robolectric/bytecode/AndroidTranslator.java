@@ -1,7 +1,8 @@
 package com.xtremelabs.robolectric.bytecode;
 
 import android.net.Uri;
-import com.xtremelabs.robolectric.internal.DoNotStrip;
+import com.xtremelabs.robolectric.internal.DoNotInstrument;
+import com.xtremelabs.robolectric.internal.Instrument;
 import javassist.CannotCompileException;
 import javassist.ClassMap;
 import javassist.ClassPool;
@@ -27,7 +28,7 @@ public class AndroidTranslator implements Translator {
      * IMPORTANT -- increment this number when the bytecode generated for modified classes changes
      * so the cache file can be invalidated.
      */
-    public static final int CACHE_VERSION = 23;
+    public static final int CACHE_VERSION = -1;
 
     private static final List<ClassHandler> CLASS_HANDLERS = new ArrayList<ClassHandler>();
     public static final ThreadLocal<Vars> ALL_VARS = new ThreadLocal<Vars>() {
@@ -39,6 +40,7 @@ public class AndroidTranslator implements Translator {
 
     private ClassHandler classHandler;
     private ClassCache classCache;
+    private CtClass objectCtClass;
 
     public AndroidTranslator(ClassHandler classHandler, ClassCache classCache) {
         this.classHandler = classHandler;
@@ -51,6 +53,8 @@ public class AndroidTranslator implements Translator {
 
     @Override
     public void start(ClassPool classPool) throws NotFoundException, CannotCompileException {
+        objectCtClass = classPool.get(Object.class.getName());
+
         injectClassHandlerToInstrumentedClasses(classPool);
     }
 
@@ -80,14 +84,15 @@ public class AndroidTranslator implements Translator {
             return;
         }
 
-        boolean needsStripping =
+        CtClass ctClass = classPool.get(className);
+        boolean wantsToBeInstrumented =
                 className.startsWith("android.")
                         || className.startsWith("com.android.layoutlib.")
                         || className.startsWith("com.google.android.maps")
-                        || className.equals("org.apache.http.impl.client.DefaultRequestDirector");
+                        || className.equals("org.apache.http.impl.client.DefaultRequestDirector")
+                        || ctClass.hasAnnotation(Instrument.class);
 
-        CtClass ctClass = classPool.get(className);
-        if (needsStripping && !ctClass.hasAnnotation(DoNotStrip.class)) {
+        if (wantsToBeInstrumented && !ctClass.hasAnnotation(DoNotInstrument.class)) {
 //            System.err.println("           onLoad doctoring " + className);
 
             int modifiers = ctClass.getModifiers();
@@ -289,7 +294,7 @@ public class AndroidTranslator implements Translator {
             String methodBody = generateMethodBody(ctClass, ctMethod, wasNative, wasAbstract, returnCtClass, returnType, isStatic, !isDeclaredOnClass);
 
             if (!isDeclaredOnClass) {
-                CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + generateCallToSuper(methodName, paramTypes) + "\n}");
+                CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + generateCallToSuper(ctMethod) + "\n}");
                 newMethod.setModifiers(newModifiers);
                 if (wasDeclaredInClass) {
                     ctMethod.insertBefore("{\n" + methodBody + "}\n");
@@ -345,8 +350,9 @@ public class AndroidTranslator implements Translator {
                 ctClass);
     }
 
-    public String generateCallToSuper(String methodName, CtClass[] paramTypes) {
-        return "return super." + methodName + "(" + makeParameterReplacementList(paramTypes.length) + ");";
+    public String generateCallToSuper(CtMethod ctMethod) throws NotFoundException {
+        return (ctMethod.getDeclaringClass().equals(objectCtClass) ? "" : RobolectricInternals.class.getName() + ".directlyOn($0);\n") +
+                "return super." + ctMethod.getName() + "(" + makeParameterReplacementList(ctMethod.getParameterTypes().length) + ");";
     }
 
     public String makeParameterReplacementList(int length) {
@@ -417,7 +423,7 @@ public class AndroidTranslator implements Translator {
             buf.append(returnType.unboxString());
             buf.append(";\n");
             if (shouldGenerateCallToSuper) {
-                buf.append(generateCallToSuper(ctMethod.getName(), ctMethod.getParameterTypes()));
+                buf.append(generateCallToSuper(ctMethod));
             } else {
                 buf.append("return ");
                 buf.append(returnType.defaultReturnString());
