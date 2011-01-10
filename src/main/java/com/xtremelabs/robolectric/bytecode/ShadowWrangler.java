@@ -24,6 +24,7 @@ import java.util.Map;
 
 public class ShadowWrangler implements ClassHandler {
     public static final String SHADOW_FIELD_NAME = "__shadow__";
+    private static final boolean STRIP_SHADOW_STACK_TRACES = true;
 
     private static ShadowWrangler singleton;
 
@@ -118,18 +119,20 @@ public class ShadowWrangler implements ClassHandler {
     }
 
     private <T extends Throwable> T stripStackTrace(T throwable) {
-        List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
-        for (StackTraceElement stackTraceElement : throwable.getStackTrace()) {
-            String className = stackTraceElement.getClassName();
-            boolean isInternalCall = className.startsWith("sun.reflect.")
-                    || className.startsWith("java.lang.reflect.")
-                    || className.equals(ShadowWrangler.class.getName())
-                    || className.equals(RobolectricInternals.class.getName());
-            if (!isInternalCall) {
-                stackTrace.add(stackTraceElement);
+        if (STRIP_SHADOW_STACK_TRACES) {
+            List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
+            for (StackTraceElement stackTraceElement : throwable.getStackTrace()) {
+                String className = stackTraceElement.getClassName();
+                boolean isInternalCall = className.startsWith("sun.reflect.")
+                        || className.startsWith("java.lang.reflect.")
+                        || className.equals(ShadowWrangler.class.getName())
+                        || className.equals(RobolectricInternals.class.getName());
+                if (!isInternalCall) {
+                    stackTrace.add(stackTraceElement);
+                }
             }
+            throwable.setStackTrace(stackTrace.toArray(new StackTraceElement[stackTrace.size()]));
         }
-        throwable.setStackTrace(stackTrace.toArray(new StackTraceElement[stackTrace.size()]));
         return throwable;
     }
 
