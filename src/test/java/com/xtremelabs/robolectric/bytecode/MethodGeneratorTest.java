@@ -75,9 +75,10 @@ public class MethodGeneratorTest {
 
     @Test
     public void shouldGenerateParameterList() throws Exception {
-        assertEquals(new MethodGenerator(null).makeParameterReplacementList(0), "");
-        assertEquals(new MethodGenerator(null).makeParameterReplacementList(1), "$1");
-        assertEquals(new MethodGenerator(null).makeParameterReplacementList(2), "$1, $2");
+        MethodGenerator methodGenerator = new MethodGenerator(classPool.getCtClass(Object.class.getName()));
+        assertEquals(methodGenerator.makeParameterList(0), "");
+        assertEquals(methodGenerator.makeParameterList(1), "$1");
+        assertEquals(methodGenerator.makeParameterList(2), "$1, $2");
     }
 
     @Test

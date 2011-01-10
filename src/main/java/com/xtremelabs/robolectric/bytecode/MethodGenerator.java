@@ -16,36 +16,17 @@ import java.util.Set;
 
 public class MethodGenerator {
     private CtClass ctClass;
+    private CtClass objectCtClass;
+    private Set<String> instrumentedMethods = new HashSet<String>();
 
     public MethodGenerator(CtClass ctClass) {
         this.ctClass = ctClass;
-    }
-
-    public void fixCallsToSameMethodOnSuper(final CtMethod ctMethod) throws CannotCompileException {
-        ctMethod.instrument(new ExprEditor() {
-            @Override
-            public void edit(MethodCall call) throws CannotCompileException {
-                if (call.isSuper() && call.getMethodName().equals(ctMethod.getName())) {
-                    StringBuilder buf = new StringBuilder();
-                    try {
-                        for (int i = 0; i < ctMethod.getParameterTypes().length; i++) {
-                            if (buf.length() > 0) {
-                                buf.append(", ");
-                            }
-                            buf.append("$");
-                            buf.append(i + 1);
-                        }
-
-                        boolean returnsVoid = ctMethod.getReturnType().equals(CtClass.voidType);
-                        call.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
-                                (returnsVoid ? "" : "$_ = ") + "super." + call.getMethodName() + "(" + buf.toString() + ");");
-                    } catch (NotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                super.edit(call);
-            }
-        });
+        
+        try {
+            objectCtClass = ctClass.getClassPool().get(Object.class.getName());
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void fixConstructors() throws CannotCompileException, NotFoundException {
@@ -53,7 +34,7 @@ public class MethodGenerator {
 
         for (CtConstructor ctConstructor : ctClass.getDeclaredConstructors()) {
             try {
-                fixConstructor(hasDefault, ctConstructor);
+                fixConstructor(ctConstructor);
 
                 if (ctConstructor.getParameterTypes().length == 0) {
                     hasDefault = true;
@@ -72,7 +53,7 @@ public class MethodGenerator {
         }
     }
 
-    public void fixConstructor(boolean needsDefault, CtConstructor ctConstructor) throws NotFoundException, CannotCompileException {
+    public void fixConstructor(CtConstructor ctConstructor) throws NotFoundException, CannotCompileException {
         String methodBody = generateConstructorBody(ctConstructor.getParameterTypes());
         ctConstructor.setBody("{\n" + methodBody + "}\n");
     }
@@ -87,27 +68,21 @@ public class MethodGenerator {
     }
 
     public void fixMethods() throws NotFoundException, CannotCompileException {
-        Set<String> instrumentedMethods = new HashSet<String>();
-
         for (CtMethod ctMethod : ctClass.getDeclaredMethods()) {
             fixMethod(ctMethod, true);
             instrumentedMethods.add(ctMethod.getName() + ctMethod.getSignature());
         }
 
-        fixMethodIfNotAlreadyFixed(instrumentedMethods, "equals", "(Ljava/lang/Object;)Z");
-        fixMethodIfNotAlreadyFixed(instrumentedMethods, "hashCode", "()I");
-        fixMethodIfNotAlreadyFixed(instrumentedMethods, "toString", "()Ljava/lang/String;");
+        fixMethodIfNotAlreadyFixed("equals", "(Ljava/lang/Object;)Z");
+        fixMethodIfNotAlreadyFixed("hashCode", "()I");
+        fixMethodIfNotAlreadyFixed("toString", "()Ljava/lang/String;");
     }
 
-    public void fixMethodIfNotAlreadyFixed(Set<String> instrumentedMethods, String methodName, String signature) throws NotFoundException {
+    public void fixMethodIfNotAlreadyFixed(String methodName, String signature) throws NotFoundException {
         if (instrumentedMethods.add(methodName + signature)) {
             CtMethod equalsMethod = ctClass.getMethod(methodName, signature);
             fixMethod(equalsMethod, false);
         }
-    }
-
-    public static String describe(CtMethod ctMethod) throws NotFoundException {
-        return Modifier.toString(ctMethod.getModifiers()) + " " + ctMethod.getReturnType().getSimpleName() + " " + ctMethod.getLongName();
     }
 
     public void fixMethod(final CtMethod ctMethod, boolean isDeclaredOnClass) throws NotFoundException {
@@ -171,6 +146,31 @@ public class MethodGenerator {
         }
     }
 
+    public void fixCallsToSameMethodOnSuper(final CtMethod ctMethod) throws CannotCompileException {
+        ctMethod.instrument(new ExprEditor() {
+            @Override
+            public void edit(MethodCall call) throws CannotCompileException {
+                if (call.isSuper() && call.getMethodName().equals(ctMethod.getName())) {
+                    StringBuilder buf = new StringBuilder();
+                    try {
+                        makeParameterList(buf, ctMethod.getParameterTypes().length);
+
+                        boolean returnsVoid = ctMethod.getReturnType().equals(CtClass.voidType);
+                        call.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
+                                (returnsVoid ? "" : "$_ = ") + "super." + call.getMethodName() + "(" + buf.toString() + ");");
+                    } catch (NotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                super.edit(call);
+            }
+        });
+    }
+
+    public static String describe(CtMethod ctMethod) throws NotFoundException {
+        return Modifier.toString(ctMethod.getModifiers()) + " " + ctMethod.getReturnType().getSimpleName() + " " + ctMethod.getLongName();
+    }
+
     public CtMethod makeNewMethod(CtMethod ctMethod, CtClass returnCtClass, String methodName, CtClass[] paramTypes, String methodBody) throws CannotCompileException, NotFoundException {
         return CtNewMethod.make(
                 ctMethod.getModifiers(),
@@ -183,22 +183,25 @@ public class MethodGenerator {
     }
 
     public String generateCallToSuper(CtMethod ctMethod) throws NotFoundException {
-        CtClass objectCtClass = ctClass.getClassPool().get(Object.class.getName());
         boolean superMethodIsInstrumented = !ctClass.getSuperclass().equals(objectCtClass);
         return (superMethodIsInstrumented ? RobolectricInternals.class.getName() + ".directlyOn($0);\n" : "") +
-                "return super." + ctMethod.getName() + "(" + makeParameterReplacementList(ctMethod.getParameterTypes().length) + ");";
+                "return super." + ctMethod.getName() + "(" + makeParameterList(ctMethod.getParameterTypes().length) + ");";
     }
 
-    public String makeParameterReplacementList(int length) {
-        if (length == 0) {
-            return "";
+    private void makeParameterList(StringBuilder buf, int length) {
+        for (int i = 0; i < length; i++) {
+            if (buf.length() > 0) {
+                buf.append(", ");
+            }
+            buf.append("$");
+            buf.append(i + 1);
         }
+    }
 
-        String parameterReplacementList = "$1";
-        for (int i = 2; i <= length; ++i) {
-            parameterReplacementList += ", $" + i;
-        }
-        return parameterReplacementList;
+    public String makeParameterList(int length) {
+        StringBuilder buf = new StringBuilder();
+        makeParameterList(buf, length);
+        return buf.toString();
     }
 
     public String generateMethodBody(CtMethod ctMethod, boolean wasNative, boolean wasAbstract, CtClass returnCtClass, Type returnType, boolean aStatic, boolean shouldGenerateCallToSuper) throws NotFoundException {
