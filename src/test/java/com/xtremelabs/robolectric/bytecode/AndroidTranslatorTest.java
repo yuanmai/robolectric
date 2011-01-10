@@ -79,7 +79,7 @@ public class AndroidTranslatorTest {
     }
 
     @Test
-    public void testDirectlyOn() throws Exception {
+    public void directlyOn_shouldCallThroughToOriginalMethodBody() throws Exception {
         Robolectric.bindShadowClass(ShadowWranglerTest.ExceptionThrowingShadowView.class);
         View view = new View(null);
 
@@ -242,10 +242,6 @@ public class AndroidTranslatorTest {
         }
     }
 
-    @Implements(ClassWithNoDefaultConstructor.class)
-    public static class ShadowClassWithNoDefaultConstructors {
-    }
-
     @Implements(View.class)
     public static class ExceptionThrowingShadowView {
         @Implementation
@@ -271,6 +267,10 @@ public class AndroidTranslatorTest {
 
     @Implements(View.class)
     public static class ViewWithoutHashCodeMethod {
+    }
+
+    @Implements(ClassWithNoDefaultConstructor.class)
+    public static class ShadowClassWithNoDefaultConstructors {
     }
 
     @Instrument

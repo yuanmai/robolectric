@@ -7,22 +7,13 @@ import javassist.CannotCompileException;
 import javassist.ClassMap;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.CtNewConstructor;
-import javassist.CtNewMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.Translator;
-import javassist.expr.ExprEditor;
-import javassist.expr.MethodCall;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @SuppressWarnings({"UnusedDeclaration"})
 public class AndroidTranslator implements Translator {
@@ -42,7 +33,6 @@ public class AndroidTranslator implements Translator {
 
     private ClassHandler classHandler;
     private ClassCache classCache;
-    private CtClass objectCtClass;
 
     public AndroidTranslator(ClassHandler classHandler, ClassCache classCache) {
         this.classHandler = classHandler;
@@ -55,8 +45,6 @@ public class AndroidTranslator implements Translator {
 
     @Override
     public void start(ClassPool classPool) throws NotFoundException, CannotCompileException {
-        objectCtClass = classPool.get(Object.class.getName());
-
         injectClassHandlerToInstrumentedClasses(classPool);
     }
 
@@ -106,8 +94,9 @@ public class AndroidTranslator implements Translator {
 
             classHandler.instrument(ctClass);
 
-            fixConstructors(ctClass);
-            fixMethods(ctClass);
+            MethodGenerator methodGenerator = new MethodGenerator(ctClass);
+            methodGenerator.fixConstructors();
+            methodGenerator.fixMethods();
 
             ctClass.makeClassInitializer().setBody("{}");
 
@@ -170,355 +159,6 @@ public class AndroidTranslator implements Translator {
 
         public String getNameWithoutFromAndroid() {
             return prefix.replace(TOKEN, "") + suffix;
-        }
-    }
-
-    private void addBypassShadowField(CtClass ctClass, String fieldName) {
-        try {
-            try {
-                ctClass.getField(fieldName);
-            } catch (NotFoundException e) {
-                CtField field = new CtField(CtClass.booleanType, fieldName, ctClass);
-                field.setModifiers(java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.STATIC);
-                ctClass.addField(field);
-            }
-        } catch (CannotCompileException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void fixConstructors(CtClass ctClass) throws CannotCompileException, NotFoundException {
-        boolean hasDefault = false;
-
-        for (CtConstructor ctConstructor : ctClass.getDeclaredConstructors()) {
-            try {
-                fixConstructor(ctClass, hasDefault, ctConstructor);
-
-                if (ctConstructor.getParameterTypes().length == 0) {
-                    hasDefault = true;
-                    ctConstructor.setModifiers(Modifier.setPublic(ctConstructor.getModifiers()));
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("problem instrumenting " + ctConstructor, e);
-            }
-        }
-
-        //System.err.println(ctClass.getName() + " hasDefault = " + hasDefault);
-
-        if (!hasDefault) {
-            String methodBody = generateConstructorBody(ctClass, new CtClass[0]);
-            ctClass.addConstructor(CtNewConstructor.make(new CtClass[0], new CtClass[0], "{\n" + methodBody + "}\n", ctClass));
-        }
-    }
-
-    private void fixConstructor(CtClass ctClass, boolean needsDefault, CtConstructor ctConstructor) throws NotFoundException, CannotCompileException {
-        String methodBody = generateConstructorBody(ctClass, ctConstructor.getParameterTypes());
-        ctConstructor.setBody("{\n" + methodBody + "}\n");
-    }
-
-    private String generateConstructorBody(CtClass ctClass, CtClass[] parameterTypes) throws NotFoundException {
-        return generateMethodBody(ctClass,
-                new CtMethod(CtClass.voidType, "<init>", parameterTypes, ctClass),
-                CtClass.voidType,
-                Type.VOID,
-                false,
-                false);
-    }
-
-    private void fixMethods(CtClass ctClass) throws NotFoundException, CannotCompileException {
-        Set<String> instrumentedMethods = new HashSet<String>();
-
-        for (CtMethod ctMethod : ctClass.getDeclaredMethods()) {
-            fixMethod(ctClass, ctMethod, true);
-            instrumentedMethods.add(ctMethod.getName() + ctMethod.getSignature());
-        }
-
-        fixMethodIfNotAlreadyFixed(instrumentedMethods, ctClass, "equals", "(Ljava/lang/Object;)Z");
-        fixMethodIfNotAlreadyFixed(instrumentedMethods, ctClass, "hashCode", "()I");
-        fixMethodIfNotAlreadyFixed(instrumentedMethods, ctClass, "toString", "()Ljava/lang/String;");
-    }
-
-    private void fixMethodIfNotAlreadyFixed(Set<String> instrumentedMethods, CtClass ctClass, String methodName, String signature) throws NotFoundException {
-        if (instrumentedMethods.add(methodName + signature)) {
-            CtMethod equalsMethod = ctClass.getMethod(methodName, signature);
-            fixMethod(ctClass, equalsMethod, false);
-        }
-    }
-
-    private String describe(CtMethod ctMethod) throws NotFoundException {
-        return Modifier.toString(ctMethod.getModifiers()) + " " + ctMethod.getReturnType().getSimpleName() + " " + ctMethod.getLongName();
-    }
-
-    private void fixMethod(CtClass ctClass, final CtMethod ctMethod, boolean isDeclaredOnClass) throws NotFoundException {
-        String describeBefore = describe(ctMethod);
-        try {
-            CtClass declaringClass = ctMethod.getDeclaringClass();
-            int originalModifiers = ctMethod.getModifiers();
-
-            if (isDeclaredOnClass) {
-                fixCallsToSameMethodOnSuper(ctMethod);
-            }
-
-            boolean wasNative = Modifier.isNative(originalModifiers);
-            boolean wasFinal = Modifier.isFinal(originalModifiers);
-            boolean wasAbstract = Modifier.isAbstract(originalModifiers);
-            boolean wasDeclaredInClass = ctClass == declaringClass;
-//            if (wasDeclaredInClass != isDeclaredOnClass) {
-//                throw new IllegalStateException(ctMethod.getLongName());
-//            }
-
-            if (wasFinal && ctClass.isEnum()) {
-                return;
-            }
-
-            int newModifiers = originalModifiers;
-            if (wasNative) {
-                newModifiers = Modifier.clear(newModifiers, Modifier.NATIVE);
-            }
-            if (wasFinal) {
-                newModifiers = Modifier.clear(newModifiers, Modifier.FINAL);
-            }
-            if (isDeclaredOnClass) {
-                ctMethod.setModifiers(newModifiers);
-            }
-
-            CtClass returnCtClass = ctMethod.getReturnType();
-            Type returnType = Type.find(returnCtClass);
-
-            String methodName = ctMethod.getName();
-            CtClass[] paramTypes = ctMethod.getParameterTypes();
-
-//            if (!isAbstract) {
-//                if (methodName.startsWith("set") && paramTypes.length == 1) {
-//                    String fieldName = "__" + methodName.substring(3);
-//                    if (declareField(ctClass, fieldName, paramTypes[0])) {
-//                        methodBody = fieldName + " = $1;\n" + methodBody;
-//                    }
-//                } else if (methodName.startsWith("get") && paramTypes.length == 0) {
-//                    String fieldName = "__" + methodName.substring(3);
-//                    if (declareField(ctClass, fieldName, returnType)) {
-//                        methodBody = "return " + fieldName + ";\n";
-//                    }
-//                }
-//            }
-
-            boolean isStatic = Modifier.isStatic(originalModifiers);
-            String methodBody = generateMethodBody(ctClass, ctMethod, wasNative, wasAbstract, returnCtClass, returnType, isStatic, !isDeclaredOnClass);
-
-            if (!isDeclaredOnClass) {
-                CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + generateCallToSuper(ctClass, ctMethod) + "\n}");
-                newMethod.setModifiers(newModifiers);
-                if (wasDeclaredInClass) {
-                    ctMethod.insertBefore("{\n" + methodBody + "}\n");
-                } else {
-                    ctClass.addMethod(newMethod);
-                }
-            } else if (wasAbstract || wasNative) {
-                CtMethod newMethod = makeNewMethod(ctClass, ctMethod, returnCtClass, methodName, paramTypes, "{\n" + methodBody + "\n}");
-                ctMethod.setBody(newMethod, null);
-            } else {
-                ctMethod.insertBefore("{\n" + methodBody + "}\n");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("problem instrumenting " + describeBefore, e);
-        }
-    }
-
-    private void fixCallsToSameMethodOnSuper(final CtMethod ctMethod) throws CannotCompileException {
-        ctMethod.instrument(new ExprEditor() {
-            @Override
-            public void edit(MethodCall call) throws CannotCompileException {
-                if (call.isSuper() && call.getMethodName().equals(ctMethod.getName())) {
-                    StringBuilder buf = new StringBuilder();
-                    try {
-                        for (int i = 0; i < ctMethod.getParameterTypes().length; i++) {
-                            if (buf.length() > 0) {
-                                buf.append(", ");
-                            }
-                            buf.append("$");
-                            buf.append(i + 1);
-                        }
-
-                        boolean returnsVoid = ctMethod.getReturnType().equals(CtClass.voidType);
-                        call.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
-                                (returnsVoid ? "" : "$_ = ") + "super." + call.getMethodName() + "(" + buf.toString() + ");");
-                    } catch (NotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                super.edit(call);
-            }
-        });
-    }
-
-    private CtMethod makeNewMethod(CtClass ctClass, CtMethod ctMethod, CtClass returnCtClass, String methodName, CtClass[] paramTypes, String methodBody) throws CannotCompileException, NotFoundException {
-        return CtNewMethod.make(
-                ctMethod.getModifiers(),
-                returnCtClass,
-                methodName,
-                paramTypes,
-                ctMethod.getExceptionTypes(),
-                methodBody,
-                ctClass);
-    }
-
-    public String generateCallToSuper(CtClass ctClass, CtMethod ctMethod) throws NotFoundException {
-        boolean superMethodIsInstrumented = !ctClass.getSuperclass().equals(objectCtClass);
-        return (superMethodIsInstrumented ? RobolectricInternals.class.getName() + ".directlyOn($0);\n" : "") +
-                "return super." + ctMethod.getName() + "(" + makeParameterReplacementList(ctMethod.getParameterTypes().length) + ");";
-    }
-
-    public String makeParameterReplacementList(int length) {
-        if (length == 0) {
-            return "";
-        }
-
-        String parameterReplacementList = "$1";
-        for (int i = 2; i <= length; ++i) {
-            parameterReplacementList += ", $" + i;
-        }
-        return parameterReplacementList;
-    }
-
-    private String generateMethodBody(CtClass ctClass, CtMethod ctMethod, boolean wasNative, boolean wasAbstract, CtClass returnCtClass, Type returnType, boolean aStatic, boolean shouldGenerateCallToSuper) throws NotFoundException {
-        String methodBody;
-        if (wasAbstract) {
-            methodBody = returnType.isVoid() ? "" : "return " + returnType.defaultReturnString() + ";";
-        } else {
-            methodBody = generateMethodBody(ctClass, ctMethod, returnCtClass, returnType, aStatic, shouldGenerateCallToSuper);
-        }
-
-        if (wasNative && !shouldGenerateCallToSuper) {
-            methodBody += returnType.isVoid() ? "" : "return " + returnType.defaultReturnString() + ";";
-        }
-        return methodBody;
-    }
-
-    public String generateMethodBody(CtClass ctClass, CtMethod ctMethod, CtClass returnCtClass, Type returnType, boolean isStatic, boolean shouldGenerateCallToSuper) throws NotFoundException {
-        boolean returnsVoid = returnType.isVoid();
-        String className = ctClass.getName();
-
-        String methodBody;
-        StringBuilder buf = new StringBuilder();
-        buf.append("if (!");
-        buf.append(RobolectricInternals.class.getName());
-        buf.append(".shouldCallDirectly(");
-        buf.append(isStatic ? className + ".class" : "this");
-        buf.append(")) {\n");
-
-        if (!returnsVoid) {
-            buf.append("Object x = ");
-        }
-        buf.append(RobolectricInternals.class.getName());
-        buf.append(".methodInvoked(\n  ");
-        buf.append(className);
-        buf.append(".class, \"");
-        buf.append(ctMethod.getName());
-        buf.append("\", ");
-        if (!isStatic) {
-            buf.append("this");
-        } else {
-            buf.append("null");
-        }
-        buf.append(", ");
-
-        appendParamTypeArray(buf, ctMethod);
-        buf.append(", ");
-        appendParamArray(buf, ctMethod);
-
-        buf.append(")");
-        buf.append(";\n");
-
-        if (!returnsVoid) {
-            buf.append("if (x != null) return ((");
-            buf.append(returnType.nonPrimitiveClassName(returnCtClass));
-            buf.append(") x)");
-            buf.append(returnType.unboxString());
-            buf.append(";\n");
-            if (shouldGenerateCallToSuper) {
-                buf.append(generateCallToSuper(ctClass, ctMethod));
-            } else {
-                buf.append("return ");
-                buf.append(returnType.defaultReturnString());
-                buf.append(";\n");
-            }
-        } else {
-            buf.append("return;\n");
-        }
-
-        buf.append("}\n");
-
-        methodBody = buf.toString();
-        return methodBody;
-    }
-
-    private void appendParamTypeArray(StringBuilder buf, CtMethod ctMethod) throws NotFoundException {
-        CtClass[] parameterTypes = ctMethod.getParameterTypes();
-        if (parameterTypes.length == 0) {
-            buf.append("new String[0]");
-        } else {
-            buf.append("new String[] {");
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (i > 0) buf.append(", ");
-                buf.append("\"");
-                CtClass parameterType = parameterTypes[i];
-                buf.append(parameterType.getName());
-                buf.append("\"");
-            }
-            buf.append("}");
-        }
-    }
-
-    private void appendParamArray(StringBuilder buf, CtMethod ctMethod) throws NotFoundException {
-        int parameterCount = ctMethod.getParameterTypes().length;
-        if (parameterCount == 0) {
-            buf.append("new Object[0]");
-        } else {
-            buf.append("new Object[] {");
-            for (int i = 0; i < parameterCount; i++) {
-                if (i > 0) buf.append(", ");
-                buf.append(RobolectricInternals.class.getName());
-                buf.append(".autobox(");
-                buf.append("$").append(i + 1);
-                buf.append(")");
-            }
-            buf.append("}");
-        }
-    }
-
-    private boolean declareField(CtClass ctClass, String fieldName, CtClass fieldType) throws CannotCompileException, NotFoundException {
-        CtMethod ctMethod = getMethod(ctClass, "get" + fieldName, "");
-        if (ctMethod == null) {
-            return false;
-        }
-        CtClass getterFieldType = ctMethod.getReturnType();
-
-        if (!getterFieldType.equals(fieldType)) {
-            return false;
-        }
-
-        if (getField(ctClass, fieldName) == null) {
-            CtField field = new CtField(fieldType, fieldName, ctClass);
-            field.setModifiers(Modifier.PRIVATE);
-            ctClass.addField(field);
-        }
-
-        return true;
-    }
-
-    private CtField getField(CtClass ctClass, String fieldName) {
-        try {
-            return ctClass.getField(fieldName);
-        } catch (NotFoundException e) {
-            return null;
-        }
-    }
-
-    private CtMethod getMethod(CtClass ctClass, String methodName, String desc) {
-        try {
-            return ctClass.getMethod(methodName, desc);
-        } catch (NotFoundException e) {
-            return null;
         }
     }
 }
