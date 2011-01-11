@@ -5,25 +5,21 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import com.google.android.maps.ItemizedOverlay;
-import com.google.android.maps.OverlayItem;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.internal.Instrument;
-import com.xtremelabs.robolectric.shadows.ShadowItemizedOverlay;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import static com.xtremelabs.robolectric.Robolectric.directlyOn;
-import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.core.StringStartsWith.startsWith;
@@ -44,12 +40,10 @@ public class AndroidTranslatorTest {
 
     @Test
     public void testProtectedMethodsAreDelegated() throws Exception {
-        Robolectric.bindShadowClass(ShadowItemizedOverlay.class);
+        Robolectric.bindShadowClass(ShadowClassWithProtectedMethod.class);
 
-        ItemizedOverlayForTests overlay = new ItemizedOverlayForTests(null);
-        overlay.triggerProtectedCall();
-
-        assertThat(shadowOf(overlay).isPopulated(), is(true));
+        ClassWithProtectedMethod overlay = new ClassWithProtectedMethod();
+        assertEquals("shadow name", overlay.getName());
     }
 
     @Test
@@ -68,7 +62,7 @@ public class AndroidTranslatorTest {
     }
 
     @Test
-    public void testGeneratedDefaultConstructorIsWired() throws Exception {
+    public void whenShadowedClassHasNoDefaultConstructor_generatedDefaultConstructorShouldNotCallShadow() throws Exception {
         Robolectric.bindShadowClass(ShadowClassWithNoDefaultConstructors.class);
 
         Constructor<ClassWithNoDefaultConstructor> ctor = ClassWithNoDefaultConstructor.class.getDeclaredConstructor();
@@ -194,24 +188,34 @@ public class AndroidTranslatorTest {
         assertEquals(view, view);
     }
 
-    @Implements(ItemizedOverlay.class)
-    public static class ItemizedOverlayForTests extends ItemizedOverlay {
-        public ItemizedOverlayForTests(Drawable drawable) {
-            super(drawable);
-        }
+    @Test
+    public void shouldGenerateSeparatedConstructorBodies() throws Exception {
+//        Robolectric.bindShadowClass(ShadowOfClassWithSomeConstructors.class);
+        ClassWithSomeConstructors o = new ClassWithSomeConstructors("my name");
+        Method realConstructor = o.getClass().getMethod("__constructor__", String.class);
+        realConstructor.invoke(o, "my name");
+        assertEquals("my name", o.name);
+    }
 
-        @Override
-        protected OverlayItem createItem(int i) {
-            return null;
-        }
+    @Test
+    public void shouldCallOriginalConstructorBodySomehow() throws Exception {
+        Robolectric.bindShadowClass(ShadowOfClassWithSomeConstructors.class);
+        ClassWithSomeConstructors o = new ClassWithSomeConstructors("my name");
+        assertEquals("my name", o.name);
+    }
 
-        public void triggerProtectedCall() {
-            populate();
+    @Implements(ClassWithProtectedMethod.class)
+    public static class ShadowClassWithProtectedMethod {
+        @Implementation
+        protected String getName() {
+            return "shadow name";
         }
+    }
 
-        @Override
-        public int size() {
-            return 0;
+    @Instrument
+    public static class ClassWithProtectedMethod {
+        protected String getName() {
+            return "protected name";
         }
     }
 
@@ -278,5 +282,19 @@ public class AndroidTranslatorTest {
     public static class ClassWithNoDefaultConstructor {
         ClassWithNoDefaultConstructor(String string) {
         }
+    }
+
+    @Instrument
+    public static class ClassWithSomeConstructors {
+        private String name;
+
+        public ClassWithSomeConstructors(String name) {
+            this.name = name;
+        }
+    }
+
+    @Implements(AndroidTranslatorTest.ClassWithSomeConstructors.class)
+    public static class ShadowOfClassWithSomeConstructors {
+
     }
 }

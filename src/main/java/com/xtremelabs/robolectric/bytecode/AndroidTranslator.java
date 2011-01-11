@@ -94,6 +94,11 @@ public class AndroidTranslator implements Translator {
 
             classHandler.instrument(ctClass);
 
+            CtClass superclass = ctClass.getSuperclass();
+            if (!superclass.isFrozen()) {
+                onLoad(classPool, superclass.getName());
+            }
+
             MethodGenerator methodGenerator = new MethodGenerator(ctClass);
             methodGenerator.fixConstructors();
             methodGenerator.fixMethods();

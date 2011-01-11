@@ -8,6 +8,7 @@ import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
+import javassist.expr.ConstructorCall;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
@@ -15,13 +16,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MethodGenerator {
+    public static final String CONSTRUCTOR_METHOD_NAME = "__constructor__";
+
     private CtClass ctClass;
     private CtClass objectCtClass;
     private Set<String> instrumentedMethods = new HashSet<String>();
 
     public MethodGenerator(CtClass ctClass) {
         this.ctClass = ctClass;
-        
+
         try {
             objectCtClass = ctClass.getClassPool().get(Object.class.getName());
         } catch (NotFoundException e) {
@@ -31,6 +34,14 @@ public class MethodGenerator {
 
     public void fixConstructors() throws CannotCompileException, NotFoundException {
         boolean hasDefault = false;
+
+        for (CtConstructor ctConstructor : ctClass.getDeclaredConstructors()) {
+            try {
+                createPlaceholderConstructorMethod(ctConstructor);
+            } catch (Exception e) {
+                throw new RuntimeException("problem instrumenting " + ctConstructor, e);
+            }
+        }
 
         for (CtConstructor ctConstructor : ctClass.getDeclaredConstructors()) {
             try {
@@ -48,23 +59,53 @@ public class MethodGenerator {
         //System.err.println(ctClass.getName() + " hasDefault = " + hasDefault);
 
         if (!hasDefault) {
-            String methodBody = generateConstructorBody(new CtClass[0]);
-            ctClass.addConstructor(CtNewConstructor.make(new CtClass[0], new CtClass[0], "{\n" + methodBody + "}\n", ctClass));
+            ctClass.addConstructor(CtNewConstructor.make(new CtClass[0], new CtClass[0], "{\n}\n", ctClass));
         }
     }
 
+    public void createPlaceholderConstructorMethod(CtConstructor ctConstructor) throws NotFoundException, CannotCompileException {
+        ctClass.addMethod(CtNewMethod.make(CtClass.voidType, CONSTRUCTOR_METHOD_NAME, ctConstructor.getParameterTypes(), ctConstructor.getExceptionTypes(), "{}", ctClass));
+    }
+
     public void fixConstructor(CtConstructor ctConstructor) throws NotFoundException, CannotCompileException {
+        ctConstructor.instrument(new ExprEditor() {
+            @Override public void edit(ConstructorCall c) throws CannotCompileException {
+                try {
+                    CtConstructor constructor = c.getConstructor();
+                    if (c.isSuper() && !hasConstructorMethod(constructor.getDeclaringClass())) {
+                        return;
+                    }
+                    c.replace("{\n" +
+                            (c.isSuper() ? "super" : "this") + ".__constructor__(" + makeParameterList(constructor.getParameterTypes().length) + ");\n" +
+                            "}");
+                } catch (NotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        ctClass.removeMethod(ctClass.getDeclaredMethod(CONSTRUCTOR_METHOD_NAME, ctConstructor.getParameterTypes()));
+        CtMethod ctorMethod = ctConstructor.toMethod(CONSTRUCTOR_METHOD_NAME, ctClass);
+        ctClass.addMethod(ctorMethod);
+
         String methodBody = generateConstructorBody(ctConstructor.getParameterTypes());
         ctConstructor.setBody("{\n" + methodBody + "}\n");
     }
 
+    private boolean hasConstructorMethod(CtClass declaringClass) throws NotFoundException {
+        try {
+            declaringClass.getDeclaredMethod(CONSTRUCTOR_METHOD_NAME);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
     public String generateConstructorBody(CtClass[] parameterTypes) throws NotFoundException {
-        return generateMethodBody(
-                new CtMethod(CtClass.voidType, "<init>", parameterTypes, ctClass),
-                CtClass.voidType,
-                Type.VOID,
-                false,
-                false);
+        return "{\n" +
+                "__constructor__(" + makeParameterList(parameterTypes.length) + ");\n" +
+                "}\n";
+
     }
 
     public void fixMethods() throws NotFoundException, CannotCompileException {
@@ -151,13 +192,15 @@ public class MethodGenerator {
             @Override
             public void edit(MethodCall call) throws CannotCompileException {
                 if (call.isSuper() && call.getMethodName().equals(ctMethod.getName())) {
-                    StringBuilder buf = new StringBuilder();
                     try {
-                        makeParameterList(buf, ctMethod.getParameterTypes().length);
-
                         boolean returnsVoid = ctMethod.getReturnType().equals(CtClass.voidType);
-                        call.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
-                                (returnsVoid ? "" : "$_ = ") + "super." + call.getMethodName() + "(" + buf.toString() + ");");
+                        try {
+                            String callParams = makeParameterList(call.getMethod().getParameterTypes().length);
+                            call.replace(RobolectricInternals.class.getName() + ".directlyOn($0);\n" +
+                                    (returnsVoid ? "" : "$_ = ") + "super." + call.getMethodName() + "(" + callParams + ");");
+                        } catch (CannotCompileException e) {
+                            throw new RuntimeException(e);
+                        }
                     } catch (NotFoundException e) {
                         throw new RuntimeException(e);
                     }

@@ -1,5 +1,6 @@
 package com.xtremelabs.robolectric.bytecode;
 
+import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 import javassist.ClassPool;
@@ -11,11 +12,9 @@ import static org.junit.Assert.assertEquals;
 
 public class MethodGeneratorTest {
     private ClassPool classPool;
-    private AndroidTranslator androidTranslator;
 
     @Before public void setUp() throws Exception {
         classPool = new ClassPool(true);
-        androidTranslator = new AndroidTranslator(null, null);
     }
 
     @Test
@@ -83,8 +82,6 @@ public class MethodGeneratorTest {
 
     @Test
     public void shouldGenerateMethodBodyForEquals() throws Exception {
-        androidTranslator.start(classPool);
-        
         CtClass subCtClass = classPool.get(TextView.class.getName());
         CtClass objectCtClass = classPool.get(Object.class.getName());
         String methodBody = new MethodGenerator(subCtClass).generateMethodBody(
@@ -100,8 +97,6 @@ public class MethodGeneratorTest {
 
     @Test
     public void shouldGenerateMethodBodyForEqualsWithoutDirectBypassIfSuperclassIsObject() throws Exception {
-        androidTranslator.start(classPool);
-
         CtClass subCtClass = classPool.get(View.class.getName());
         CtClass objectCtClass = classPool.get(Object.class.getName());
         String methodBody = new MethodGenerator(subCtClass).generateMethodBody(
@@ -112,5 +107,15 @@ public class MethodGeneratorTest {
                 "  android.view.View.class, \"equals\", this, new String[] {\"java.lang.Object\"}, new Object[] {com.xtremelabs.robolectric.bytecode.RobolectricInternals.autobox($1)});\n" +
                 "if (x != null) return ((java.lang.Boolean) x).booleanValue();\n" +
                 "return super.equals($1);}\n", methodBody);
+    }
+
+    @Test
+    public void shouldGenerateConstructorMethodBodyWhichCallsShadowWranglerInitAndThisConstructor() throws Exception {
+        CtClass ctClass = classPool.get(View.class.getName());
+        String methodBody = new MethodGenerator(ctClass).generateConstructorBody(
+                new CtClass[]{classPool.get(Context.class.getName())});
+        assertEquals("{\n" +
+                "__constructor__($1);\n" +
+                "}\n", methodBody);
     }
 }

@@ -99,12 +99,16 @@ public class ShadowWrangler implements ClassHandler {
             throw new RuntimeException(aClassName + " is not assignable from " +
                     invocationPlan.getDeclaredShadowClass().getName(), e);
         } catch (InvocationTargetException e) {
-            throw stripStackTrace((Exception) e.getCause());
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) {
+                throw stripStackTrace((Exception) cause);
+            }
+            throw new RuntimeException(cause);
         }
     }
 
     private Object delegateBackToReal(InvocationPlan invocationPlan, Object[] params) throws InvocationTargetException, IllegalAccessException {
-        if (invocationPlan.methodName.startsWith("<") || invocationPlan.methodName.equals("__constructor__")) {
+        if (invocationPlan.methodName.startsWith("<")) {
             return null;
         }
 
@@ -263,7 +267,11 @@ public class ShadowWrangler implements ClassHandler {
             throw new NullPointerException("can't get a shadow for null");
         }
         Field field = getShadowField(instance);
-        return readField(instance, field);
+        Object shadow = readField(instance, field);
+        if (shadow == null) {
+            shadow = shadowFor(instance);
+        }
+        return shadow;
     }
 
     private Object readField(Object target, Field field) {
