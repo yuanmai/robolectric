@@ -9,5 +9,7 @@ public interface ClassHandler {
 
     void afterTest();
 
+    void classInitializing(Class clazz);
+
     Object methodInvoked(Class clazz, String methodName, Object instance, String[] paramTypes, Object[] params) throws Exception;
 }

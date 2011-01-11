@@ -73,6 +73,11 @@ public class ShadowWrangler implements ClassHandler {
     public void afterTest() {
     }
 
+    @Override public void classInitializing(Class clazz) {
+        // todo: this should only happen if there is no shadow, or the shadow indicates it should (e.g. explicitly or with an annotation)
+        AndroidTranslator.performStaticInitialization(clazz);
+    }
+
     public void bindShadowClass(Class<?> realClass, Class<?> shadowClass) {
         shadowClassMap.put(realClass.getName(), shadowClass.getName());
         if (debug) System.out.println("shadow " + realClass + " with " + shadowClass);

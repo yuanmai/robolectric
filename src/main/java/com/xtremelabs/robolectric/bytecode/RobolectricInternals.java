@@ -34,6 +34,11 @@ public class RobolectricInternals {
     }
 
     @SuppressWarnings({"UnusedDeclaration"})
+    public static void classInitializing(Class clazz) throws Exception {
+        classHandler.classInitializing(clazz);
+    }
+
+    @SuppressWarnings({"UnusedDeclaration"})
     public static Object methodInvoked(Class clazz, String methodName, Object instance, String[] paramTypes, Object[] params) throws Exception {
         return classHandler.methodInvoked(clazz, methodName, instance, paramTypes, params);
     }

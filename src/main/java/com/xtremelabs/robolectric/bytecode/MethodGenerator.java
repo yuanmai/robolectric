@@ -361,4 +361,20 @@ public class MethodGenerator {
             buf.append("}");
         }
     }
+
+    public void deferClassInitialization() throws CannotCompileException {
+        CtConstructor classInitializer = ctClass.getClassInitializer();
+        CtMethod staticInitializerMethod;
+        if (classInitializer == null) {
+            staticInitializerMethod = CtNewMethod.make(CtClass.voidType, AndroidTranslator.STATIC_INITIALIZER_METHOD_NAME, new CtClass[0], new CtClass[0], "{}", ctClass);
+        } else {
+            staticInitializerMethod = classInitializer.toMethod(AndroidTranslator.STATIC_INITIALIZER_METHOD_NAME, ctClass);
+        }
+        staticInitializerMethod.setModifiers(Modifier.STATIC | Modifier.PUBLIC);
+        ctClass.addMethod(staticInitializerMethod);
+
+        ctClass.makeClassInitializer().setBody("{\n" +
+                RobolectricInternals.class.getName() + ".classInitializing(" + ctClass.getName() + ".class);" +
+                "}");
+    }
 }

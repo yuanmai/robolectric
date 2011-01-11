@@ -12,6 +12,7 @@ import javassist.NotFoundException;
 import javassist.Translator;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class AndroidTranslator implements Translator {
      * IMPORTANT -- increment this number when the bytecode generated for modified classes changes
      * so the cache file can be invalidated.
      */
-    public static final int CACHE_VERSION = 23;
+    public static final int CACHE_VERSION = -1;
 
     private static final List<ClassHandler> CLASS_HANDLERS = new ArrayList<ClassHandler>();
     public static final ThreadLocal<Vars> ALL_VARS = new ThreadLocal<Vars>() {
@@ -30,6 +31,7 @@ public class AndroidTranslator implements Translator {
             return new Vars();
         }
     };
+    static final String STATIC_INITIALIZER_METHOD_NAME = "__staticInitializer__";
 
     private ClassHandler classHandler;
     private ClassCache classCache;
@@ -41,6 +43,18 @@ public class AndroidTranslator implements Translator {
 
     public static ClassHandler getClassHandler(int index) {
         return CLASS_HANDLERS.get(index);
+    }
+
+    public static void performStaticInitialization(Class<?> clazz) {
+        try {
+            clazz.getDeclaredMethod(STATIC_INITIALIZER_METHOD_NAME).invoke(null);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -100,10 +114,9 @@ public class AndroidTranslator implements Translator {
             }
 
             MethodGenerator methodGenerator = new MethodGenerator(ctClass);
+            methodGenerator.deferClassInitialization();
             methodGenerator.fixConstructors();
             methodGenerator.fixMethods();
-
-            ctClass.makeClassInitializer().setBody("{}");
 
             try {
                 classCache.addClass(className, ctClass.toBytecode());
