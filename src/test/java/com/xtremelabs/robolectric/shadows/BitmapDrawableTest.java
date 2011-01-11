@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class BitmapDrawableTest {
@@ -63,7 +63,7 @@ public class BitmapDrawableTest {
         Drawable drawable2 = resources.getDrawable(R.drawable.an_other_image);
 
         assertEquals(drawable1a, drawable1b);
-        assertTrue(drawable1a != drawable2);
+        assertFalse(drawable1a.equals(drawable2));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class BitmapDrawableTest {
         assertEquals(drawable1a, drawable1b);
 
         drawable1b.setBounds(1, 2, 3, 5);
-        assertTrue(drawable1a != drawable1b);
+        assertFalse(drawable1a.equals(drawable1b));
     }
 
     @Test
