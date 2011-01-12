@@ -1,5 +1,6 @@
 package com.xtremelabs.robolectric.bytecode;
 
+import com.xtremelabs.robolectric.RobolectricConfig;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
 import com.xtremelabs.robolectric.internal.RealObject;
 import com.xtremelabs.robolectric.internal.RobolectricTestRunnerInterface;
@@ -55,6 +56,7 @@ public class RobolectricClassLoader extends javassist.Loader {
                             || name.equals(RealObject.class.getName())
                             || name.equals(ShadowWrangler.class.getName())
                             || name.equals(RobolectricTestRunnerInterface.class.getName())
+                            || name.equals(RobolectricConfig.class.getName())
                             || name.equals(Vars.class.getName())
             );
 

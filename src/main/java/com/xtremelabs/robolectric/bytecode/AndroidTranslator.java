@@ -88,7 +88,13 @@ public class AndroidTranslator implements Translator {
             return;
         }
 
-        CtClass ctClass = classPool.get(className);
+        CtClass ctClass;
+        try {
+            ctClass = classPool.get(className);
+        } catch (NotFoundException e) {
+            throw new RobolectricClassNotFoundException(e);
+        }
+
         boolean wantsToBeInstrumented =
                 className.startsWith("android.")
                         || className.startsWith("com.android.layoutlib.")
@@ -97,8 +103,6 @@ public class AndroidTranslator implements Translator {
                         || ctClass.hasAnnotation(Instrument.class);
 
         if (wantsToBeInstrumented && !ctClass.hasAnnotation(DoNotInstrument.class)) {
-//            System.err.println("           onLoad doctoring " + className);
-
             int modifiers = ctClass.getModifiers();
             if (Modifier.isFinal(modifiers)) {
                 ctClass.setModifiers(modifiers & ~Modifier.FINAL);
