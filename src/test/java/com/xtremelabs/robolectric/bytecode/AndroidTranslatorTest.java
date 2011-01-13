@@ -65,18 +65,18 @@ public class AndroidTranslatorTest {
 
     @Test
     public void whenShadowedClassHasNoDefaultConstructor_generatedDefaultConstructorShouldNotCallShadow() throws Exception {
-        Robolectric.bindShadowClass(ShadowClassWithNoDefaultConstructors.class);
+        Robolectric.bindShadowClass(ShadowClassWithNoDefaultConstructor.class);
 
         Constructor<ClassWithNoDefaultConstructor> ctor = ClassWithNoDefaultConstructor.class.getDeclaredConstructor();
         ctor.setAccessible(true);
         ClassWithNoDefaultConstructor instance = ctor.newInstance();
         assertThat(Robolectric.shadowOf_(instance), not(nullValue()));
-        assertThat(Robolectric.shadowOf_(instance), instanceOf(ShadowClassWithNoDefaultConstructors.class));
+        assertThat(Robolectric.shadowOf_(instance), instanceOf(ShadowClassWithNoDefaultConstructor.class));
     }
 
     @Test
     public void directlyOn_shouldCallThroughToOriginalMethodBody() throws Exception {
-        Robolectric.bindShadowClass(ShadowWranglerTest.ExceptionThrowingShadowView.class);
+        Robolectric.bindShadowClass(ExceptionThrowingShadowView.class);
         View view = new View(null);
 
         try {
@@ -98,7 +98,7 @@ public class AndroidTranslatorTest {
 
     @Test
     public void testDirectlyOn_Statics() throws Exception {
-        Robolectric.bindShadowClass(ShadowWranglerTest.ExceptionThrowingShadowView.class);
+        Robolectric.bindShadowClass(ExceptionThrowingShadowView.class);
 
         try {
             View.resolveSize(0, 0);
@@ -290,7 +290,7 @@ public class AndroidTranslatorTest {
     }
 
     @Implements(ClassWithNoDefaultConstructor.class)
-    public static class ShadowClassWithNoDefaultConstructors {
+    public static class ShadowClassWithNoDefaultConstructor {
     }
 
     @Instrument
