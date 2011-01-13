@@ -58,7 +58,7 @@ public class MethodGenerator {
 
         //System.err.println(ctClass.getName() + " hasDefault = " + hasDefault);
 
-        if (!hasDefault) {
+        if (!hasDefault && !ctClass.isEnum()) {
             ctClass.addConstructor(CtNewConstructor.make(new CtClass[0], new CtClass[0], "{\n}\n", ctClass));
         }
     }

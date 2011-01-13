@@ -108,7 +108,7 @@ public class AndroidTranslator implements Translator {
                 ctClass.setModifiers(modifiers & ~Modifier.FINAL);
             }
 
-            if (ctClass.isInterface()) return;
+            if (ctClass.isInterface() || ctClass.isEnum()) return;
 
             classHandler.instrument(ctClass);
 
