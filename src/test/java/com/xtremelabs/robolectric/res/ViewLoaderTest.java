@@ -40,11 +40,11 @@ public class ViewLoaderTest {
         Robolectric.bindDefaultShadowClasses();
 
         ResourceExtractor resourceExtractor = new ResourceExtractor();
-        resourceExtractor.addRClass(R.class);
+        resourceExtractor.addLocalRClass(R.class);
         StringResourceLoader stringResourceLoader = new StringResourceLoader(resourceExtractor);
-        new DocumentLoader(stringResourceLoader).loadResourceXmlDir(resourceFile("res", "values"));
+        new DocumentLoader(stringResourceLoader).loadLocalResourceXmlDir(resourceFile("res", "values"));
         viewLoader = new ViewLoader(resourceExtractor, new AttrResourceLoader(resourceExtractor));
-        new DocumentLoader(viewLoader).loadResourceXmlDir(resourceFile("res", "layout"));
+        new DocumentLoader(viewLoader).loadLocalResourceXmlDir(resourceFile("res", "layout"));
 
         context = new Activity();
     }
@@ -63,7 +63,7 @@ public class ViewLoaderTest {
         WebView webView = (WebView) view.findViewById(R.id.web_view);
 
         webView.loadUrl("www.example.com");
-        
+
         assertThat(shadowOf(webView).getLastLoadedUrl(), equalTo("www.example.com"));
     }
 

@@ -1,6 +1,7 @@
 package com.xtremelabs.robolectric.shadows;
 
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -41,6 +42,13 @@ public class ShadowResources {
     }
 
     @Implementation
+    public Configuration getConfiguration() {
+        Configuration configuration = new Configuration();
+        configuration.setToDefaults();
+        return configuration;
+    }
+
+    @Implementation
     public String getString(int id) throws Resources.NotFoundException {
         return resourceLoader.getStringValue(id);
     }
@@ -53,9 +61,9 @@ public class ShadowResources {
 
     @Implementation
     public InputStream openRawResource(int id) throws Resources.NotFoundException {
-    	return resourceLoader.getRawValue(id);
+        return resourceLoader.getRawValue(id);
     }
-    
+
     @Implementation
     public String[] getStringArray(int id) throws Resources.NotFoundException {
         String[] arrayValue = resourceLoader.getStringArrayValue(id);
@@ -109,14 +117,14 @@ public class ShadowResources {
     }
 
     @Implementation
-    public AssetManager getAssets(){
+    public AssetManager getAssets() {
         return ShadowAssetManager.bind(Robolectric.newInstanceOf(AssetManager.class), resourceLoader);
     }
 
     /**
      * Non-Android accessor that sets the value to be returned by {@link #getDimension(int)}
      *
-     * @param id ID to set the dimension for
+     * @param id    ID to set the dimension for
      * @param value value to be returned
      */
     public void setDimension(int id, int value) {

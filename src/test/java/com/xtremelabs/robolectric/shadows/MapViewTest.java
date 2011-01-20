@@ -8,7 +8,6 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
-import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,8 +29,6 @@ public class MapViewTest {
 
 
     @Before public void setUp() throws Exception {
-        Robolectric.bindDefaultShadowClasses();
-
         mapView = new MapView(new Activity(), "foo");
 
         overlay1 = new MyOverlay();

@@ -1,6 +1,5 @@
 package com.xtremelabs.robolectric.shadows;
 
-import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import com.xtremelabs.robolectric.Robolectric;
@@ -9,7 +8,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class ConnectivityManagerTest {
@@ -18,29 +19,27 @@ public class ConnectivityManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        Robolectric.bindDefaultShadowClasses();
-        Robolectric.application = new Application();
         connectivityManager = (ConnectivityManager) Robolectric.application.getSystemService(Context.CONNECTIVITY_SERVICE);
         networkInfo = Robolectric.shadowOf(connectivityManager.getActiveNetworkInfo());
     }
 
     @Test
     public void getConnectivityManagerShouldNotBeNull() {
-    	assertNotNull(connectivityManager);
-    	assertNotNull(connectivityManager.getActiveNetworkInfo());
+        assertNotNull(connectivityManager);
+        assertNotNull(connectivityManager.getActiveNetworkInfo());
     }
 
     @Test
     public void networkInfoShouldReturnTrueCorrectly() {
-    	networkInfo.setConnectionStatus(true);
+        networkInfo.setConnectionStatus(true);
 
-    	assertTrue(connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting());
+        assertTrue(connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting());
     }
 
     @Test
     public void networkInfoShouldReturnFalseCorrectly() {
-    	networkInfo.setConnectionStatus(false);
+        networkInfo.setConnectionStatus(false);
 
-    	assertFalse(connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting());
+        assertFalse(connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting());
     }
 }
