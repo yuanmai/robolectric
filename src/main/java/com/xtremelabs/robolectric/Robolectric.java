@@ -301,7 +301,9 @@ public class Robolectric {
 
     public static void resetStaticState() {
         AndroidTranslator.ALL_VARS.remove();
-        ShadowWrangler.getInstance().silence();
+        ShadowWrangler shadowWrangler = ShadowWrangler.getInstance();
+        shadowWrangler.silence();
+        shadowWrangler.runUnshadowedStaticInitializers();
         Robolectric.application = new Application();
         ShadowBitmapFactory.reset();
     }

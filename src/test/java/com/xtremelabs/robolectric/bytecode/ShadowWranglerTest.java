@@ -28,6 +28,22 @@ public class ShadowWranglerTest {
     }
 
     @Test
+    public void whenClassIsUnshadowed_shouldPerformStaticInitialization() throws Exception {
+        ShadowWrangler.getInstance().runUnshadowedStaticInitializers();
+        assertEquals("Hank", UnshadowedClassWithStaticInitializer.name);
+    }
+
+    @Test
+    public void whenClassIsShadowed_shouldDeferStaticInitialization() throws Exception {
+        Robolectric.bindShadowClass(ShadowClassWithStaticInitializer.class);
+        ShadowWrangler.getInstance().runUnshadowedStaticInitializers();
+        assertEquals(null, ClassWithStaticInitializer.name);
+
+        AndroidTranslator.performStaticInitialization(ClassWithStaticInitializer.class);
+        assertEquals("Floyd", ClassWithStaticInitializer.name);
+    }
+
+    @Test
     public void testConstructorInvocation_WithDefaultConstructorAndNoConstructorDelegateOnShadowClass() throws Exception {
         Robolectric.bindShadowClass(ShadowFoo_WithDefaultConstructorAndNoConstructorDelegate.class);
 
@@ -210,5 +226,19 @@ public class ShadowWranglerTest {
         public String getName() throws IOException {
             throw new IOException("fake exception");
         }
+    }
+
+    @Instrument
+    public static class ClassWithStaticInitializer {
+        static String name = "Floyd";
+    }
+
+    @Instrument
+    public static class UnshadowedClassWithStaticInitializer {
+        static String name = "Hank";
+    }
+
+    @Implements(ClassWithStaticInitializer.class)
+    public static class ShadowClassWithStaticInitializer {
     }
 }

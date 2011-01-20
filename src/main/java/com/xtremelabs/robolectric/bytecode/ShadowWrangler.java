@@ -34,6 +34,7 @@ public class ShadowWrangler implements ClassHandler {
     private Map<String, String> shadowClassMap = new HashMap<String, String>();
     private Map<Class, Field> shadowFieldMap = new HashMap<Class, Field>();
     private boolean logMissingShadowMethods = false;
+    private StaticInitializerRegistry deferredStaticInitializers = new StaticInitializerRegistry();
 
     // sorry! it really only makes sense to have one per ClassLoader anyway though [xw/hu]
     public static ShadowWrangler getInstance() {
@@ -74,13 +75,17 @@ public class ShadowWrangler implements ClassHandler {
     }
 
     @Override public void classInitializing(Class clazz) {
-        // todo: this should only happen if there is no shadow, or the shadow indicates it should (e.g. explicitly or with an annotation)
-        AndroidTranslator.performStaticInitialization(clazz);
+        deferredStaticInitializers.deferInitializationOf(clazz);
     }
 
     public void bindShadowClass(Class<?> realClass, Class<?> shadowClass) {
+        deferredStaticInitializers.neverInitialize(realClass);
         shadowClassMap.put(realClass.getName(), shadowClass.getName());
         if (debug) System.out.println("shadow " + realClass + " with " + shadowClass);
+    }
+
+    public void runUnshadowedStaticInitializers() {
+        deferredStaticInitializers.runDeferredInitializers();
     }
 
     @Override

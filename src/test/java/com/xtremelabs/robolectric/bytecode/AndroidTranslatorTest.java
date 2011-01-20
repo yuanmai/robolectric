@@ -13,14 +13,12 @@ import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.internal.Instrument;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import static com.xtremelabs.robolectric.Robolectric.bindShadowClass;
 import static com.xtremelabs.robolectric.Robolectric.directlyOn;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.core.StringContains.containsString;
@@ -193,7 +191,6 @@ public class AndroidTranslatorTest {
 
     @Test
     public void shouldGenerateSeparatedConstructorBodies() throws Exception {
-//        Robolectric.bindShadowClass(ShadowOfClassWithSomeConstructors.class);
         ClassWithSomeConstructors o = new ClassWithSomeConstructors("my name");
         Method realConstructor = o.getClass().getMethod("__constructor__", String.class);
         realConstructor.invoke(o, "my name");
@@ -205,20 +202,6 @@ public class AndroidTranslatorTest {
         Robolectric.bindShadowClass(ShadowOfClassWithSomeConstructors.class);
         ClassWithSomeConstructors o = new ClassWithSomeConstructors("my name");
         assertEquals("my name", o.name);
-    }
-
-    @Ignore @Test
-    public void whenClassIsUnshadowed_shouldPerformStaticInitialization() throws Exception {
-        assertEquals("Floyd", ClassWithStaticInitializer.name);
-    }
-    
-    @Test
-    public void whenClassIsShadowed_shouldDeferStaticInitialization() throws Exception {
-        bindShadowClass(ShadowClassWithStaticInitializer.class);
-        assertEquals(null, ClassWithStaticInitializer.name);
-
-        AndroidTranslator.performStaticInitialization(ClassWithStaticInitializer.class);
-        assertEquals("Floyd", ClassWithStaticInitializer.name);
     }
 
     @Implements(ClassWithProtectedMethod.class)
@@ -314,12 +297,4 @@ public class AndroidTranslatorTest {
     public static class ShadowOfClassWithSomeConstructors {
     }
 
-    @Instrument
-    public static class ClassWithStaticInitializer {
-        static String name = "Floyd";
-    }
-
-    @Implements(AndroidTranslatorTest.ClassWithStaticInitializer.class)
-    public static class ShadowClassWithStaticInitializer {
-    }
 }
