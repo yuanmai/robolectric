@@ -7,6 +7,7 @@ import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.util.TestOnClickListener;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,6 +45,7 @@ public class RobolectricTest {
     }
 
     @Test
+    @Ignore
     public void shouldLogMissingInvokedShadowMethodsWhenRequested() throws Exception {
         Robolectric.bindShadowClass(TestShadowView.class);
         Robolectric.logMissingInvokedShadowMethods();

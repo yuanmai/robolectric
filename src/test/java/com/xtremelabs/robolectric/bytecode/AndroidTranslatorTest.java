@@ -106,6 +106,7 @@ public class AndroidTranslatorTest {
             assertEquals("shadow resolveSize was called", expected.getMessage());
         }
 
+        directlyOn(View.class);
         assertEquals(27, View.resolveSize(27, View.MeasureSpec.UNSPECIFIED));
     }
 
