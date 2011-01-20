@@ -13,6 +13,7 @@ import javassist.Translator;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,9 @@ public class AndroidTranslator implements Translator {
 
     public static void performStaticInitialization(Class<?> clazz) {
         try {
-            clazz.getDeclaredMethod(STATIC_INITIALIZER_METHOD_NAME).invoke(null);
+            Method staticInitializer = clazz.getDeclaredMethod(STATIC_INITIALIZER_METHOD_NAME);
+            staticInitializer.setAccessible(true);
+            staticInitializer.invoke(null);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {
