@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(WithoutTestDefaultsRunner.class)
-public class SupercalifragilisticTest {
+public class SubclassMethodLookupTest {
     @Test
     public void shouldNotCallShadowsForCallsToSuper() throws Exception {
         Robolectric.bindShadowClass(ShadowSuperClass.class);
@@ -94,7 +94,7 @@ public class SupercalifragilisticTest {
         }
     }
 
-    @Implements(SupercalifragilisticTest.SubSubHasToString.class)
+    @Implements(SubclassMethodLookupTest.SubSubHasToString.class)
     static public class ShadowSubSubHasToString {
         @RealObject SubSubHasToString subSubHasToString;
         @Override

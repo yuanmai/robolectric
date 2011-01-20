@@ -4,15 +4,13 @@ import com.xtremelabs.robolectric.internal.Instrument;
 
 @Instrument
 public class Foo {
+    private String name;
+
     public Foo(String s) {
-        throw new RuntimeException("stub!");
+        name = s;
     }
 
     public String getName() {
-        throw new RuntimeException("stub!");
-    }
-
-    public void findFooById(int i) {
-        throw new RuntimeException("stub!");
+        return name;
     }
 }
