@@ -59,7 +59,9 @@ public class AndroidTranslator implements Translator {
                 staticInitializer.invoke(null);
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            if (!ShadowWrangler.isShadowClass(clazz)) {
+                throw new RuntimeException(e);
+            }
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {

@@ -25,23 +25,19 @@ public class ShadowWranglerTest {
     @Before
     public void setUp() throws Exception {
         name = "context";
+        // in case they haven't been run yet by another TestRunner
+        ShadowWrangler.getInstance().runDeferredStaticInitializers();
     }
 
     @Test
     public void whenClassIsUnshadowed_shouldPerformStaticInitialization() throws Exception {
-        ShadowWrangler.getInstance().runDeferredStaticInitializers();
         assertEquals("Hank", UnshadowedClassWithStaticInitializer.name);
     }
 
     @Test
-    public void whenClassIsShadowed_shouldDeferStaticInitialization() throws Exception {
+    public void whenClassIsShadowed_shouldBlockStaticInitialization() throws Exception {
         Robolectric.bindShadowClass(ShadowClassWithStaticInitializer.class);
 
-        assertFalse(ShadowClassWithStaticInitializer.hasBeenStaticallyInitialized);
-
-        ShadowWrangler shadowWrangler = ShadowWrangler.getInstance();
-        shadowWrangler.runDeferredStaticInitializers();
-        assertTrue(ShadowClassWithStaticInitializer.hasBeenStaticallyInitialized);
         assertEquals(null, ClassWithStaticInitializer.name);
 
         AndroidTranslator.performStaticInitialization(ClassWithStaticInitializer.class);
@@ -253,15 +249,16 @@ public class ShadowWranglerTest {
     }
 
     @Instrument
-public static class ClassWithStaticInitializer {
-    static String name = "Floyd";
-}
+    public static class ClassWithStaticInitializer {
+        static String name = "Floyd";
+    }
 
     @Implements(ClassWithStaticInitializer.class)
-public static class ShadowClassWithStaticInitializer {
-    public static boolean hasBeenStaticallyInitialized = false;
-    public static void __staticInitializer__() {
-        hasBeenStaticallyInitialized = true;
+    public static class ShadowClassWithStaticInitializer {
+        public static boolean hasBeenStaticallyInitialized = false;
+
+        public static void __staticInitializer__() {
+            hasBeenStaticallyInitialized = true;
+        }
     }
-}
 }
