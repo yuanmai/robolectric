@@ -88,12 +88,6 @@
             <version>1.8.5</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>net.sf.kxml</groupId>
-            <artifactId>kxml2</artifactId>
-            <version>2.2.2</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -155,8 +149,8 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <delete dir="${project.basedir}/lib/main"/>
-                                        <mkdir dir="${project.basedir}/lib/main"/>
+                                        <delete dir="${project.basedir}/lib/main" />
+                                        <mkdir dir="${project.basedir}/lib/main" />
                                     </target>
                                 </configuration>
                             </execution>
