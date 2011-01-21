@@ -303,7 +303,7 @@ public class Robolectric {
         AndroidTranslator.ALL_VARS.remove();
         ShadowWrangler shadowWrangler = ShadowWrangler.getInstance();
         shadowWrangler.silence();
-        shadowWrangler.runUnshadowedStaticInitializers();
+        shadowWrangler.runDeferredStaticInitializers();
         Robolectric.application = new Application();
         ShadowBitmapFactory.reset();
     }

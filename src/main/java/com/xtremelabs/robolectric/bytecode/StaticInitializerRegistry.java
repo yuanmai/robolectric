@@ -4,9 +4,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class StaticInitializerRegistry {
-    boolean stillDeferring = true;
-    Set<Class<?>> deferredInitializeClasses = new HashSet<Class<?>>();
-    Set<Class<?>> neverInitializeClasses = new HashSet<Class<?>>();
+    private boolean stillDeferring = true;
+    private Set<Class<?>> deferredInitializeClasses = new HashSet<Class<?>>();
+    private Set<Class<?>> neverInitializeClasses = new HashSet<Class<?>>();
+    private Set<Class<?>> deferredInitializeShadowClasses = new HashSet<Class<?>>();
 
     public void deferInitializationOf(Class<?> clazz) {
         if (!neverInitializeClasses.contains(clazz)) {
@@ -18,9 +19,10 @@ public class StaticInitializerRegistry {
         }
     }
 
-    public void neverInitialize(Class<?> clazz) {
+    public void initializeUsingShadow(Class<?> clazz, Class<?> shadowClass) {
         deferredInitializeClasses.remove(clazz);
         neverInitializeClasses.add(clazz);
+        deferInitializationOf(shadowClass);
     }
 
     public void runDeferredInitializers() {

@@ -29,14 +29,19 @@ public class ShadowWranglerTest {
 
     @Test
     public void whenClassIsUnshadowed_shouldPerformStaticInitialization() throws Exception {
-        ShadowWrangler.getInstance().runUnshadowedStaticInitializers();
+        ShadowWrangler.getInstance().runDeferredStaticInitializers();
         assertEquals("Hank", UnshadowedClassWithStaticInitializer.name);
     }
 
     @Test
     public void whenClassIsShadowed_shouldDeferStaticInitialization() throws Exception {
         Robolectric.bindShadowClass(ShadowClassWithStaticInitializer.class);
-        ShadowWrangler.getInstance().runUnshadowedStaticInitializers();
+
+        assertFalse(ShadowClassWithStaticInitializer.hasBeenStaticallyInitialized);
+
+        ShadowWrangler shadowWrangler = ShadowWrangler.getInstance();
+        shadowWrangler.runDeferredStaticInitializers();
+        assertTrue(ShadowClassWithStaticInitializer.hasBeenStaticallyInitialized);
         assertEquals(null, ClassWithStaticInitializer.name);
 
         AndroidTranslator.performStaticInitialization(ClassWithStaticInitializer.class);
@@ -163,6 +168,20 @@ public class ShadowWranglerTest {
         assertThat(stackTrace, not(containsString(RobolectricInternals.class.getName() + ".")));
     }
 
+    @Test
+    public void shouldIdentifyShadowClasses() throws Exception {
+
+        Class<ShadowClassWithStaticInitializer> shadowClass = ShadowClassWithStaticInitializer.class;
+        Class<ClassWithStaticInitializer> unshadowedClass = ClassWithStaticInitializer.class;
+
+        assertTrue(ShadowWrangler.isShadowClass(shadowClass));
+        assertFalse(ShadowWrangler.isShadowClass(unshadowedClass));
+    }
+
+    public static boolean isShadowClass(Class<?> shadowClass) {
+        return shadowClass.getAnnotation(Implements.class) != null;
+    }
+
     private ShadowFoo shadowOf(Foo foo) {
         return (ShadowFoo) Robolectric.shadowOf_(foo);
     }
@@ -229,16 +248,20 @@ public class ShadowWranglerTest {
     }
 
     @Instrument
-    public static class ClassWithStaticInitializer {
-        static String name = "Floyd";
-    }
-
-    @Instrument
     public static class UnshadowedClassWithStaticInitializer {
         static String name = "Hank";
     }
 
+    @Instrument
+public static class ClassWithStaticInitializer {
+    static String name = "Floyd";
+}
+
     @Implements(ClassWithStaticInitializer.class)
-    public static class ShadowClassWithStaticInitializer {
+public static class ShadowClassWithStaticInitializer {
+    public static boolean hasBeenStaticallyInitialized = false;
+    public static void __staticInitializer__() {
+        hasBeenStaticallyInitialized = true;
     }
+}
 }

@@ -1,6 +1,7 @@
 package com.xtremelabs.robolectric.bytecode;
 
 import android.net.Uri;
+import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.internal.DoNotInstrument;
 import com.xtremelabs.robolectric.internal.Instrument;
 import javassist.CannotCompileException;
@@ -48,9 +49,15 @@ public class AndroidTranslator implements Translator {
 
     public static void performStaticInitialization(Class<?> clazz) {
         try {
+            if (!ShadowWrangler.isShadowClass(clazz)) {
+                Robolectric.directlyOn(clazz);
+            }
+
             Method staticInitializer = clazz.getDeclaredMethod(STATIC_INITIALIZER_METHOD_NAME);
-            staticInitializer.setAccessible(true);
-            staticInitializer.invoke(null);
+            if (staticInitializer != null) {
+                staticInitializer.setAccessible(true);
+                staticInitializer.invoke(null);
+            }
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {

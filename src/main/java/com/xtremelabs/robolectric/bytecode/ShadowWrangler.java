@@ -44,6 +44,16 @@ public class ShadowWrangler implements ClassHandler {
         return singleton;
     }
 
+    public static boolean isShadowClass(Class<?> declaringClass) {
+        // why doesn't getAnnotation(com.xtremelabs.robolectric.internal.Implements) work here? It always returns null. pg 20101115
+        for (Annotation annotation : declaringClass.getAnnotations()) {
+            if (annotation.annotationType().toString().equals("interface com.xtremelabs.robolectric.internal.Implements")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ShadowWrangler() {
     }
 
@@ -79,12 +89,12 @@ public class ShadowWrangler implements ClassHandler {
     }
 
     public void bindShadowClass(Class<?> realClass, Class<?> shadowClass) {
-        deferredStaticInitializers.neverInitialize(realClass);
+        deferredStaticInitializers.initializeUsingShadow(realClass, shadowClass);
         shadowClassMap.put(realClass.getName(), shadowClass.getName());
         if (debug) System.out.println("shadow " + realClass + " with " + shadowClass);
     }
 
-    public void runUnshadowedStaticInitializers() {
+    public void runDeferredStaticInitializers() {
         deferredStaticInitializers.runDeferredInitializers();
     }
 
@@ -436,13 +446,7 @@ public class ShadowWrangler implements ClassHandler {
 
         private boolean isOnShadowClass(Method method) {
             Class<?> declaringClass = method.getDeclaringClass();
-            // why doesn't getAnnotation(com.xtremelabs.robolectric.internal.Implements) work here? It always returns null. pg 20101115
-            for (Annotation annotation : declaringClass.getAnnotations()) {
-                if (annotation.annotationType().toString().equals("interface com.xtremelabs.robolectric.internal.Implements")) {
-                    return true;
-                }
-            }
-            return false;
+            return isShadowClass(declaringClass);
         }
 
         @Override
