@@ -303,6 +303,8 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
     public void setupApplicationState(RobolectricConfig robolectricConfig) {
         ResourceLoader resourceLoader = createResourceLoader(robolectricConfig);
 
+        Robolectric.silenceMissingMethodsLogger();
+
         Robolectric.bindDefaultShadowClasses();
         bindShadowClasses();
 

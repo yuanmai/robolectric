@@ -7,7 +7,6 @@ import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.util.TestOnClickListener;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -45,7 +44,6 @@ public class RobolectricTest {
     }
 
     @Test
-    @Ignore
     public void shouldLogMissingInvokedShadowMethodsWhenRequested() throws Exception {
         Robolectric.bindShadowClass(TestShadowView.class);
         Robolectric.logMissingInvokedShadowMethods();
@@ -55,7 +53,7 @@ public class RobolectricTest {
         // There's a shadow method for this
         aView.getContext();
         String output = buff.toString();
-        assertEquals("No Shadow method found for View.<init>(android.content.Context)\n", output);
+        assertEquals("No Shadow method found for View.__constructor__(android.content.Context)\n", output);
         buff.reset();
 
         aView.findViewById(27);

@@ -314,7 +314,7 @@ public class ShadowWrangler implements ClassHandler {
         logMissingShadowMethods = true;
     }
 
-    public void silence() {
+    public void silenceMissingMethodsLogger() {
         logMissingShadowMethods = false;
     }
 

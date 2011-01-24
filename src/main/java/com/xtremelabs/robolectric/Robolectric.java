@@ -195,6 +195,13 @@ public class Robolectric {
         ShadowWrangler.getInstance().logMissingInvokedShadowMethods();
     }
 
+    /**
+     * Turns the logging of missing invoked shadow methods off again.
+     */
+    public static void silenceMissingMethodsLogger() {
+        ShadowWrangler.getInstance().silenceMissingMethodsLogger();
+    }
+
     public static List<Class<?>> getDefaultShadowClasses() {
         return Arrays.asList(
                 ShadowAbsoluteLayout.class,
@@ -302,7 +309,6 @@ public class Robolectric {
     public static void resetStaticState() {
         AndroidTranslator.ALL_VARS.remove();
         ShadowWrangler shadowWrangler = ShadowWrangler.getInstance();
-        shadowWrangler.silence();
         shadowWrangler.runDeferredStaticInitializers();
         Robolectric.application = new Application();
         ShadowBitmapFactory.reset();
