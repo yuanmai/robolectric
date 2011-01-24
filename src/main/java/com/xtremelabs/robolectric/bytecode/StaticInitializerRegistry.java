@@ -7,7 +7,6 @@ public class StaticInitializerRegistry {
     private boolean stillDeferring = true;
     private Set<Class<?>> deferredInitializeClasses = new HashSet<Class<?>>();
     private Set<Class<?>> neverInitializeClasses = new HashSet<Class<?>>();
-    private Set<Class<?>> deferredInitializeShadowClasses = new HashSet<Class<?>>();
 
     public void deferInitializationOf(Class<?> clazz) {
         if (!neverInitializeClasses.contains(clazz)) {
@@ -26,10 +25,10 @@ public class StaticInitializerRegistry {
     }
 
     public void runDeferredInitializers() {
+        stillDeferring = false;
         for (Class<?> clazz : deferredInitializeClasses) {
             AndroidTranslator.performStaticInitialization(clazz);
         }
         deferredInitializeClasses.clear();
-        stillDeferring = false;
     }
 }
