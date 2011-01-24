@@ -66,6 +66,8 @@ public class AndroidTranslator implements Translator {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        } catch (NullPointerException e) {
+            throw new RuntimeException("Can't call " + STATIC_INITIALIZER_METHOD_NAME + " on " + clazz.getSimpleName() + " is it declared 'static'?", e);
         }
     }
 

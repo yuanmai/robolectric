@@ -100,7 +100,7 @@ public class ShadowApplication extends ShadowContextWrapper {
 
     @Override @Implementation
     public Resources getResources() {
-        return ShadowResources.bind(new Resources(null, null, null), resourceLoader);
+        return ShadowResources.bind(Resources.getSystem(), resourceLoader);
     }
 
     @Implementation

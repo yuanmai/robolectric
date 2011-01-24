@@ -1,6 +1,7 @@
 package com.xtremelabs.robolectric.shadows;
 
 import android.content.res.AssetManager;
+import com.xtremelabs.robolectric.bytecode.AndroidTranslator;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.res.ResourceLoader;
@@ -15,6 +16,11 @@ import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 @SuppressWarnings({"UnusedDeclaration"})
 @Implements(AssetManager.class)
 public final class ShadowAssetManager {
+
+    public static void __staticInitializer__() {
+        AndroidTranslator.performStaticInitialization(AssetManager.class);
+    }
+
     static AssetManager bind(AssetManager assetManager, ResourceLoader resourceLoader) {
         ShadowAssetManager shadowAssetManager = shadowOf(assetManager);
         if (shadowAssetManager.resourceLoader != null) throw new RuntimeException("ResourceLoader already set!");

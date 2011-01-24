@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
 import com.xtremelabs.robolectric.Robolectric;
+import com.xtremelabs.robolectric.bytecode.AndroidTranslator;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.internal.RealObject;
@@ -26,9 +27,15 @@ import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 @SuppressWarnings({"UnusedDeclaration"})
 @Implements(Resources.class)
 public class ShadowResources {
+    public static void __staticInitializer__() {
+        AndroidTranslator.performStaticInitialization(Resources.class);
+    }
+
     static Resources bind(Resources resources, ResourceLoader resourceLoader) {
         ShadowResources shadowResources = shadowOf(resources);
-        if (shadowResources.resourceLoader != null) throw new RuntimeException("ResourceLoader already set!");
+        if (shadowResources.resourceLoader != null && shadowResources.resourceLoader != resourceLoader) {
+            throw new RuntimeException("ResourceLoader already set!");
+        }
         shadowResources.resourceLoader = resourceLoader;
         return resources;
     }
