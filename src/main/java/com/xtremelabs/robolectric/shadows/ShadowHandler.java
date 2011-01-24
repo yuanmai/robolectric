@@ -23,7 +23,7 @@ public class ShadowHandler {
     private Looper looper;
 
     public void __constructor__() {
-//        this.looper = Looper.myLooper();
+        this.looper = Looper.myLooper();
     }
 
     public void __constructor__(Looper looper) {
