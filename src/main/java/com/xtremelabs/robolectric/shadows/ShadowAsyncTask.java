@@ -14,6 +14,10 @@ public class ShadowAsyncTask<Params, Progress, Result> {
     private boolean cancelled = false;
     private boolean hasRun = false;
 
+    public void __constructor__() {
+        
+    }
+
 //    public android.os.AsyncTask.Status getStatus() {
 //        return null;
 //    }
