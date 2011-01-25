@@ -100,7 +100,8 @@ public class ShadowApplication extends ShadowContextWrapper {
 
     @Override @Implementation
     public Resources getResources() {
-        return ShadowResources.bind(Resources.getSystem(), resourceLoader);
+        Resources resources = Robolectric.newInstanceOf(Resources.class);
+        return ShadowResources.bind(resources, resourceLoader);
     }
 
     @Implementation
