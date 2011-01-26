@@ -81,7 +81,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
      * @throws InitializationError if junit says so
      */
     public RobolectricTestRunner(Class<?> testClass) throws InitializationError {
-        this(testClass, new File("."));
+        this(testClass, new RobolectricConfig(new File(".")));
     }
 
     /**
@@ -108,7 +108,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
      * @throws InitializationError if the test class is malformed
      */
     public RobolectricTestRunner(Class<?> testClass, File androidProjectRoot) throws InitializationError {
-        this(testClass, new File(androidProjectRoot, "AndroidManifest.xml"), new File(androidProjectRoot, "res"));
+        this(testClass, new RobolectricConfig(androidProjectRoot));
     }
 
     /**
@@ -120,7 +120,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
      * @deprecated Use {@link #RobolectricTestRunner(Class, File)} instead.
      */
     public RobolectricTestRunner(Class<?> testClass, String androidProjectRoot) throws InitializationError {
-        this(testClass, new File(androidProjectRoot));
+        this(testClass, new RobolectricConfig(new File(androidProjectRoot)));
     }
 
     /**
@@ -136,10 +136,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
      */
     protected RobolectricTestRunner(Class<?> testClass, File androidManifestPath, File resourceDirectory)
             throws InitializationError {
-        this(testClass,
-                isInstrumented() ? null : ShadowWrangler.getInstance(),
-                isInstrumented() ? null : getDefaultLoader(),
-                new RobolectricConfig(androidManifestPath, resourceDirectory));
+        this(testClass, new RobolectricConfig(androidManifestPath, resourceDirectory));
     }
 
     /**
@@ -156,7 +153,7 @@ public class RobolectricTestRunner extends BlockJUnit4ClassRunner implements Rob
      */
     protected RobolectricTestRunner(Class<?> testClass, String androidManifestPath, String resourceDirectory)
             throws InitializationError {
-        this(testClass, new File(androidManifestPath), new File(resourceDirectory));
+        this(testClass, new RobolectricConfig(new File(androidManifestPath), new File(resourceDirectory)));
     }
 
     /**

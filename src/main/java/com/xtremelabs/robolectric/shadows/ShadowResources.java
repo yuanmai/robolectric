@@ -3,9 +3,11 @@ package com.xtremelabs.robolectric.shadows;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.bytecode.AndroidTranslator;
@@ -17,6 +19,7 @@ import com.xtremelabs.robolectric.res.ResourceLoader;
 import java.io.InputStream;
 import java.util.Locale;
 
+import static com.xtremelabs.robolectric.Robolectric.newInstanceOf;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
 /**
@@ -128,6 +131,11 @@ public class ShadowResources {
         return ShadowAssetManager.bind(Robolectric.newInstanceOf(AssetManager.class), resourceLoader);
     }
 
+    @Implementation
+    public final android.content.res.Resources.Theme newTheme() {
+        return newInstanceOf(Resources.Theme.class);
+    }
+
     /**
      * Non-Android accessor that sets the value to be returned by {@link #getDimension(int)}
      *
@@ -136,5 +144,23 @@ public class ShadowResources {
      */
     public void setDimension(int id, int value) {
         resourceLoader.dimensions.put(id, value);
+    }
+
+    @Implements(Resources.Theme.class)
+    public static class ShadowTheme {
+        @Implementation
+        public TypedArray obtainStyledAttributes(int[] attrs) {
+            return obtainStyledAttributes(0, attrs);
+        }
+
+        @Implementation
+        public TypedArray obtainStyledAttributes(int resid, int[] attrs) throws android.content.res.Resources.NotFoundException {
+            return obtainStyledAttributes(null, attrs, 0, 0);
+        }
+
+        @Implementation
+        public TypedArray obtainStyledAttributes(AttributeSet set, int[] attrs, int defStyleAttr, int defStyleRes) {
+            return newInstanceOf(TypedArray.class);
+        }
     }
 }
