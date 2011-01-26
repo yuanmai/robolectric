@@ -3,6 +3,7 @@ package com.xtremelabs.robolectric.shadows;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import com.xtremelabs.robolectric.Robolectric;
@@ -83,6 +84,12 @@ public class ShadowAlertDialog extends ShadowDialog {
                 return neutralButton;
         }
         throw new RuntimeException("Only positive, negative, or neutral button choices are recognized");
+    }
+
+    @Implementation
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     /**

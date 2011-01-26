@@ -159,6 +159,10 @@ public class ShadowDialog {
         return window;
     }
 
+    @Implementation
+    public void onCreate(Bundle savedInstanceState) {
+    }
+
     public int getLayoutId() {
         return layoutId;
     }
