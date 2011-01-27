@@ -15,8 +15,7 @@ import java.lang.reflect.Constructor;
 
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
-
-@SuppressWarnings({"UnusedDeclaration"})
+@SuppressWarnings( { "UnusedDeclaration" })
 @Implements(AlertDialog.class)
 public class ShadowAlertDialog extends ShadowDialog {
     private CharSequence[] items;
@@ -43,7 +42,8 @@ public class ShadowAlertDialog extends ShadowDialog {
         return Robolectric.getShadowApplication().getLatestAlertDialog();
     }
 
-    @Override @Implementation
+    @Override
+    @Implementation
     public View findViewById(int viewId) {
         return null;
     }
@@ -56,10 +56,11 @@ public class ShadowAlertDialog extends ShadowDialog {
     }
 
     /**
-     * Simulates a click on the {@code Dialog} item indicated by {@code index}. Handles both multi- and single-choice
-     * dialogs, tracks which items are currently checked and calls listeners appropriately.
+     * Simulates a click on the {@code Dialog} item indicated by {@code index}. Handles both multi- and single-choice dialogs, tracks which items are currently
+     * checked and calls listeners appropriately.
      *
-     * @param index the index of the item to click on
+     * @param index
+     *            the index of the item to click on
      */
     public void clickOnItem(int index) {
         if (isMultiItem) {
@@ -76,12 +77,12 @@ public class ShadowAlertDialog extends ShadowDialog {
     @Implementation
     public Button getButton(int whichButton) {
         switch (whichButton) {
-            case AlertDialog.BUTTON_POSITIVE:
-                return positiveButton;
-            case AlertDialog.BUTTON_NEGATIVE:
-                return negativeButton;
-            case AlertDialog.BUTTON_NEUTRAL:
-                return neutralButton;
+        case AlertDialog.BUTTON_POSITIVE:
+            return positiveButton;
+        case AlertDialog.BUTTON_NEGATIVE:
+            return negativeButton;
+        case AlertDialog.BUTTON_NEUTRAL:
+            return neutralButton;
         }
         throw new RuntimeException("Only positive, negative, or neutral button choices are recognized");
     }
@@ -134,7 +135,8 @@ public class ShadowAlertDialog extends ShadowDialog {
      */
     @Implements(AlertDialog.Builder.class)
     public static class ShadowBuilder {
-        @RealObject private AlertDialog.Builder realBuilder;
+        @RealObject
+        private AlertDialog.Builder realBuilder;
 
         private CharSequence[] items;
         private DialogInterface.OnClickListener clickListener;
@@ -161,6 +163,21 @@ public class ShadowAlertDialog extends ShadowDialog {
          */
         public void __constructor__(Context context) {
             this.context = context;
+        }
+
+        /**
+         * Set a list of items to be displayed in the dialog as the content, you will be notified of the selected item via the supplied listener. This should be
+         * an array type i.e. R.array.foo
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
+        @Implementation
+        public AlertDialog.Builder setItems(int itemsId, final DialogInterface.OnClickListener listener) {
+            this.isMultiItem = false;
+
+            this.items = context.getResources().getTextArray(itemsId);
+            this.clickListener = listener;
+            return realBuilder;
         }
 
         @Implementation
@@ -288,7 +305,8 @@ public class ShadowAlertDialog extends ShadowDialog {
             Button button = new Button(context);
             button.setText(text);
             button.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
+                @Override
+                public void onClick(View v) {
                     listener.onClick(dialog, which);
                 }
             });
