@@ -1,6 +1,9 @@
 package com.xtremelabs.robolectric.shadows;
 
 import android.database.sqlite.SQLiteCursor;
+import android.database.sqlite.SQLiteCursorDriver;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQuery;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 
@@ -16,6 +19,10 @@ public class ShadowSQLiteCursor extends ShadowAbstractCursor {
 
     private ResultSet resultSet;
     private int rowCount;
+
+    public void __constructor__(SQLiteDatabase db, SQLiteCursorDriver driver,
+            String editTable, SQLiteQuery query) {
+    }
 
     @Implementation
     public int getCount() {

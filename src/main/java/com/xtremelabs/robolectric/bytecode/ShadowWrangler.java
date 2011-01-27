@@ -143,7 +143,7 @@ public class ShadowWrangler implements ClassHandler {
 
     public boolean classIsStubbed(Class clazz) {
         for (String packagePrefix : stubbedPackages) {
-            if (clazz.getPackage().getName().startsWith(packagePrefix)) {
+            if (clazz.getName().startsWith(packagePrefix)) {
                 return true;
             }
         }
