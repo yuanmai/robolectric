@@ -6,6 +6,7 @@ import android.hardware.Camera;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -42,6 +43,7 @@ public class CameraParametersTest {
     }
 
     @Test
+    @Ignore // API level 9 not yet reviscerated
     public void testPreviewFpsRange() throws Exception {
         int[] fpsRange = new int[2];
         parameters.getPreviewFpsRange(fpsRange);
@@ -114,6 +116,7 @@ public class CameraParametersTest {
     }
 
     @Test
+    @Ignore // API level 9 not yet reviscerated
     public void testGetSupportedPreviewFpsRange() throws Exception {
         List<int[]> supportedRanges = parameters.getSupportedPreviewFpsRange();
         assertThat(supportedRanges, notNullValue());
