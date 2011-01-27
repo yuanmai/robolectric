@@ -35,6 +35,7 @@ public class ShadowWrangler implements ClassHandler {
     private Map<Class, Field> shadowFieldMap = new HashMap<Class, Field>();
     private boolean logMissingShadowMethods = false;
     private StaticInitializerRegistry deferredStaticInitializers = new StaticInitializerRegistry();
+    private final List<String> stubbedPackages = new ArrayList<String>();
 
     // sorry! it really only makes sense to have one per ClassLoader anyway though [xw/hu]
     public static ShadowWrangler getInstance() {
@@ -42,6 +43,10 @@ public class ShadowWrangler implements ClassHandler {
             singleton = new ShadowWrangler();
         }
         return singleton;
+    }
+
+    public static ShadowWrangler newShadowWranglerForTest() {
+        return new ShadowWrangler();
     }
 
     public static boolean isShadowClass(Class<?> declaringClass) {
@@ -55,6 +60,11 @@ public class ShadowWrangler implements ClassHandler {
     }
 
     private ShadowWrangler() {
+        initializeStubbedPackageList();
+    }
+
+    private void initializeStubbedPackageList() {
+        stubbedPackages.add("com.google.android.maps");
     }
 
     @Override
@@ -104,7 +114,7 @@ public class ShadowWrangler implements ClassHandler {
         try {
             if (!invocationPlan.prepare()) {
                 reportNoShadowMethodFound(clazz, methodName, paramTypes);
-                if (RobolectricTestRunner.USE_REAL_ANDROID_SOURCES) {
+                if (RobolectricTestRunner.USE_REAL_ANDROID_SOURCES && !classIsStubbed(clazz)) {
                     return delegateBackToReal(invocationPlan, params);
                 } else {
                     return null;
@@ -125,6 +135,19 @@ public class ShadowWrangler implements ClassHandler {
             }
             throw new RuntimeException(cause);
         }
+    }
+
+    public List<String> getStubbedPackages() {
+        return stubbedPackages;
+    }
+
+    public boolean classIsStubbed(Class clazz) {
+        for (String packagePrefix : stubbedPackages) {
+            if (clazz.getPackage().getName().startsWith(packagePrefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Object delegateBackToReal(InvocationPlan invocationPlan, Object[] params) throws InvocationTargetException, IllegalAccessException {

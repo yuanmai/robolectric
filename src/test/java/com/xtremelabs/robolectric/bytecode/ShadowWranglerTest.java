@@ -1,5 +1,6 @@
 package com.xtremelabs.robolectric.bytecode;
 
+import com.google.android.maps.MapActivity;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithoutTestDefaultsRunner;
 import com.xtremelabs.robolectric.internal.Implements;
@@ -12,6 +13,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
@@ -21,12 +23,15 @@ import static org.junit.Assert.*;
 @RunWith(WithoutTestDefaultsRunner.class)
 public class ShadowWranglerTest {
     private String name;
+    private ShadowWrangler testShadowWrangler;
 
     @Before
     public void setUp() throws Exception {
         name = "context";
         // in case they haven't been run yet by another TestRunner
         ShadowWrangler.getInstance().runDeferredStaticInitializers();
+
+        testShadowWrangler = ShadowWrangler.newShadowWranglerForTest();
     }
 
     @Test
@@ -174,6 +179,23 @@ public class ShadowWranglerTest {
         assertFalse(ShadowWrangler.isShadowClass(unshadowedClass));
     }
 
+    @Test
+    public void shouldKnowMapsClassesAreStubbed() throws Exception {
+        assertTrue(testShadowWrangler.classIsStubbed(MapActivity.class));
+    }
+
+    @Test
+    public void stubbedPackageList_ShouldContainMapsPackage() throws Exception {
+        List<String> stubbedPackageList = testShadowWrangler.getStubbedPackages();
+        assertTrue(stubbedPackageList.contains("com.google.android.maps"));
+    }
+
+    @Test
+    public void shouldAllowStubbedPackageListToBeChanged() throws Exception {
+        List<String> stubbedPackageList = testShadowWrangler.getStubbedPackages();
+        stubbedPackageList.remove("com.google.android.maps");
+        assertFalse(testShadowWrangler.classIsStubbed(MapActivity.class));
+    }
     public static boolean isShadowClass(Class<?> shadowClass) {
         return shadowClass.getAnnotation(Implements.class) != null;
     }
