@@ -73,7 +73,7 @@ public class ResourceLoader {
         try {
             if (resourceDir != null) {
                 viewLoader = new ViewLoader(resourceExtractor, attrResourceLoader);
-                menuLoader = new MenuLoader(resourceExtractor);
+                menuLoader = new MenuLoader(resourceExtractor, attrResourceLoader);
 
                 File systemResourceDir = getSystemResourceDir(getPathToAndroidResources());
                 File localValueResourceDir = getValueResourceDir(resourceDir);
@@ -282,10 +282,15 @@ public class ResourceLoader {
     }
 
     public void inflateMenu(Context context, int resource, Menu root) {
+        init();
         menuLoader.inflateMenu(context, resource, root);
     }
 
     public File getAssetsBase() {
         return assetsDir;
+    }
+
+    public ResourceExtractor getResourceExtractor() {
+        return resourceExtractor;
     }
 }
