@@ -3,6 +3,7 @@ package com.xtremelabs.robolectric.shadows;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.View;
@@ -253,6 +254,10 @@ public class ShadowActivity extends ShadowContextWrapper {
         intentRequestCodeMap.put(intent, requestCode);
         startedActivitiesForResults.add(new IntentForResult(intent, requestCode));
         getApplicationContext().startActivity(intent);
+    }
+
+    @Implementation
+    public void onCreate(Bundle savedInstanceState) {
     }
 
     public void receiveResult(Intent requestIntent, int resultCode, Intent resultIntent) {

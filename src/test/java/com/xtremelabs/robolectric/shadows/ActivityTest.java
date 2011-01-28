@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Bundle;
 import com.xtremelabs.robolectric.ApplicationResolver;
 import com.xtremelabs.robolectric.R;
 import com.xtremelabs.robolectric.Robolectric;
@@ -165,9 +166,20 @@ public class ActivityTest {
         assertTrue(runnable.wasRun);
     }
 
+    @Test
+    public void shouldNotThrowNPEInOnCreate() throws Exception {
+        MyActivity myActivity = new MyActivity();
+        myActivity.onCreate(new Bundle());
+        assertNotNull(myActivity);
+    }
+
     private static class MyActivity extends Activity {
         @Override protected void onDestroy() {
             super.onDestroy();
+        }
+
+        @Override protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
         }
     }
 }
