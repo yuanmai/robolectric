@@ -36,7 +36,7 @@ public class ShadowPreference {
 	@Implementation
 	public void setEnabled(boolean enabled) {
 		if (attributeSet != null && attributeSet instanceof TestAttributeSet<?>) {
-			((TestAttributeSet<?>) attributeSet).setAttributeValue("android", "enabled", String.valueOf(enabled));
+			((TestAttributeSet<?>) attributeSet).put("android:enabled", String.valueOf(enabled));
 		}
 	}
 
@@ -53,7 +53,7 @@ public class ShadowPreference {
 	@Implementation
 	public void setSummary(CharSequence summary) {
 		if (attributeSet != null && attributeSet instanceof TestAttributeSet<?>) {
-			((TestAttributeSet<?>) attributeSet).setAttributeValue("android", "summary", summary);
+			((TestAttributeSet<?>) attributeSet).put("android:summary", summary.toString());
 		}
 	}
 
@@ -65,7 +65,7 @@ public class ShadowPreference {
 	@Implementation
 	public void setTitle(CharSequence title) {
 		if (attributeSet != null && attributeSet instanceof TestAttributeSet<?>) {
-			((TestAttributeSet<?>) attributeSet).setAttributeValue("android", "title", title);
+			((TestAttributeSet<?>) attributeSet).put("android:title", title.toString());
 		}
 	}
 

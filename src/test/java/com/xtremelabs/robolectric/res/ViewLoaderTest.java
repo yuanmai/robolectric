@@ -121,6 +121,7 @@ public class ViewLoaderTest {
         assertInstanceOf(LinearLayout.class, overrideIncludeView.findViewById(R.id.outer_merge));
         assertInstanceOf(TextView.class, overrideIncludeView.findViewById(R.id.inner_text));
         assertNull(overrideIncludeView.findViewById(R.id.include_id));
+        assertEquals(1, overrideIncludeView.getChildCount());
     }
 
     @Test
@@ -246,5 +247,11 @@ public class ViewLoaderTest {
         CustomView2 innerCustomView = (CustomView2) outerCustomView.getChildAt(0);
         assertThat(outerCustomView.childCountAfterInflate, equalTo(1));
         assertThat(innerCustomView.childCountAfterInflate, equalTo(3));
+    }
+
+    @Test
+    public void testIncludesLinearLayoutsOnlyOnce() throws Exception {
+        ViewGroup parentView = (ViewGroup) viewLoader.inflateView(context, "layout/included_layout_parent");
+        assertEquals(1, parentView.getChildCount());
     }
 }

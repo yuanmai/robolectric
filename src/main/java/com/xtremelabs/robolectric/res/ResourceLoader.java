@@ -44,6 +44,7 @@ public class ResourceLoader {
 
 	private File resourceDir;
 	private File assetsDir;
+	private int sdkVersion;
 
 	private final ResourceExtractor resourceExtractor;
 	private ViewLoader viewLoader;
@@ -59,7 +60,8 @@ public class ResourceLoader {
 	// TODO: get these value from the xml resources instead [xw 20101011]
 	public final Map<Integer, Integer> dimensions = new HashMap<Integer, Integer>();
 
-	public ResourceLoader(Class rClass, File resourceDir, File assetsDir) throws Exception {
+	public ResourceLoader(int sdkVersion, Class rClass, File resourceDir, File assetsDir) throws Exception {
+		this.sdkVersion = sdkVersion;
 		this.assetsDir = assetsDir;
 		resourceExtractor = new ResourceExtractor();
 		resourceExtractor.addLocalRClass(rClass);
@@ -82,7 +84,7 @@ public class ResourceLoader {
 		try {
 			if (resourceDir != null) {
 				viewLoader = new ViewLoader(resourceExtractor, attrResourceLoader);
-				menuLoader = new MenuLoader(resourceExtractor);
+				menuLoader = new MenuLoader(resourceExtractor, attrResourceLoader);
 				preferenceLoader = new PreferenceLoader(resourceExtractor, attrResourceLoader);
 
 				File systemResourceDir = getSystemResourceDir(getPathToAndroidResources());
@@ -318,5 +320,9 @@ public class ResourceLoader {
 	public Preference inflatePreference(Context context, int resource) {
 		init();
 		return preferenceLoader.inflatePreference(context, resource);
+	}
+
+	public ResourceExtractor getResourceExtractor() {
+		return resourceExtractor;
 	}
 }
