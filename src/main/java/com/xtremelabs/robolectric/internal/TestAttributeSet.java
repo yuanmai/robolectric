@@ -4,19 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.util.AttributeSet;
-import android.view.View;
 
 import com.xtremelabs.robolectric.res.AttrResourceLoader;
 import com.xtremelabs.robolectric.res.ResourceExtractor;
 
-public class TestAttributeSet implements AttributeSet {
+public class TestAttributeSet<P> implements AttributeSet {
 	Map<String, String> attributes = new HashMap<String, String>();
 	private ResourceExtractor resourceExtractor;
 	private AttrResourceLoader attrResourceLoader;
-	private Class<? extends View> viewClass;
+	private Class<? extends P> viewClass;
 
 	public TestAttributeSet(Map<String, String> attributes, ResourceExtractor resourceExtractor, AttrResourceLoader attrResourceLoader,
-			Class<? extends View> viewClass) {
+			Class<? extends P> viewClass) {
 		this.attributes = attributes;
 		this.resourceExtractor = resourceExtractor;
 		this.attrResourceLoader = attrResourceLoader;
@@ -32,6 +31,23 @@ public class TestAttributeSet implements AttributeSet {
 	@Override
 	public String getAttributeValue(String namespace, String attribute) {
 		return getAttributeValueInMap(attribute);
+	}
+
+	/**
+	 * Method added so that ShadowClasses can also put values in the AttributeSet
+	 * 
+	 * @param namespace
+	 *            the namespace of the attribute
+	 * @param attribute
+	 *            the attribute name
+	 * @param value
+	 *            the value of the attribute
+	 */
+	public void setAttributeValue(String namespace, String attribute, CharSequence value) {
+		if (this.attributes == null) {
+			throw new IllegalStateException("The TestAttributeSet does not have an associated Attribute Map");
+		}
+		this.attributes.put(namespace + ":" + attribute, value.toString());
 	}
 
 	@Override

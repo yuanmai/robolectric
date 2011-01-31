@@ -8,4 +8,5 @@
         <item>foo</item>
         <item>bar</item>
     </string-array>
+    <string name="preference_homer_simpson">Donuts</string>
 </resources>

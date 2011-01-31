@@ -40,6 +40,7 @@ public final class R {
 		public static final int hello = nextId++;
 		public static final int some_html = nextId++;
 		public static final int greeting = nextId++;
+		public static final int preference_homer_simpson = nextId++;
 	}
 
 	public static final class array {
@@ -90,6 +91,10 @@ public final class R {
 		public static final int[] HeaderBar = { id.textStyle2, id.textStyle3 };
 		public static final int HeaderBar_textStyle2 = 0;
 		public static final int HeaderBar_textStyle3 = 1;
+	}
+
+	public static final class xml {
+		public static final int preferences = nextId++;
 	}
 
 	;

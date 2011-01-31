@@ -39,6 +39,13 @@ public class TestAttributeSetTest {
 	}
 
 	@Test
+	public void testPutAttributeInTestAttributeSet() throws Exception {
+		TestAttributeSet testAttributeSet = new TestAttributeSet(attributes, resourceExtractor, null, null);
+		testAttributeSet.setAttributeValue("android", "title", "test");
+		assertThat(testAttributeSet.getAttributeValue("android", "title"), equalTo("test"));
+	}
+
+	@Test
 	public void getAttributeResourceValue_shouldReturnTheResourceValue() throws Exception {
 		attributes.put("message", "@string/howdy");
 
