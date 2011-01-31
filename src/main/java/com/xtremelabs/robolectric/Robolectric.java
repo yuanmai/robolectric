@@ -1,5 +1,12 @@
 package com.xtremelabs.robolectric;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.impl.client.DefaultRequestDirector;
+
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -59,20 +66,15 @@ import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
+
 import com.xtremelabs.robolectric.bytecode.RobolectricInternals;
 import com.xtremelabs.robolectric.bytecode.ShadowWrangler;
 import com.xtremelabs.robolectric.shadows.*;
 import com.xtremelabs.robolectric.util.HttpRequestInfo;
 import com.xtremelabs.robolectric.util.RequestMatcher;
 import com.xtremelabs.robolectric.util.Scheduler;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.impl.client.DefaultRequestDirector;
 
-import java.util.Arrays;
-import java.util.List;
-
-@SuppressWarnings({"UnusedDeclaration"})
+@SuppressWarnings( { "UnusedDeclaration" })
 public class Robolectric {
     public static Application application;
 
@@ -106,129 +108,37 @@ public class Robolectric {
     }
 
     /**
-     * Invoke this utility method in tests to reveal which Android api classes and methods are being invoked
-     * for which there are no shadows or shadow methods. This helps expose which methods are being invoked
-     * either by a third party library or application code which need new shadow methods to be written. Generates
-     * output for the current test only.
+     * Invoke this utility method in tests to reveal which Android api classes and methods are being invoked for which there are no shadows or shadow methods.
+     * This helps expose which methods are being invoked either by a third party library or application code which need new shadow methods to be written.
+     * Generates output for the current test only.
      */
     public static void logMissingInvokedShadowMethods() {
         ShadowWrangler.getInstance().logMissingInvokedShadowMethods();
     }
 
     public static List<Class<?>> getDefaultShadowClasses() {
-        return Arrays.asList(
-                ShadowAbsoluteLayout.class,
-                ShadowAbsSpinner.class,
-                ShadowAbstractCursor.class,
-                ShadowActivity.class,
-                ShadowAdapterView.class,
-                ShadowAddress.class,
-                ShadowAlarmManager.class,
-                ShadowAlertDialog.class,
-                ShadowAlertDialog.ShadowBuilder.class,
-                ShadowApplication.class,
-                ShadowAppWidgetManager.class,
-                ShadowArrayAdapter.class,
-                ShadowAssetManager.class,
-                ShadowAsyncTask.class,
-                ShadowAudioManager.class,
-                ShadowBaseAdapter.class,
-                ShadowBitmap.class,
-                ShadowBitmapDrawable.class,
-                ShadowBitmapFactory.class,
-                ShadowBluetoothAdapter.class,
-                ShadowBluetoothDevice.class,
-                ShadowBundle.class,
-                ShadowCamera.class,
-                ShadowCameraParameters.class,
-                ShadowCameraSize.class,
-                ShadowCanvas.class,
-                ShadowColorMatrix.class,
-                ShadowColorMatrixColorFilter.class,
-                ShadowColorStateList.class,
-                ShadowComponentName.class,
-                ShadowCompoundButton.class,
-                ShadowConfiguration.class,
-                ShadowConnectivityManager.class,
-                ShadowContentResolver.class,
-                ShadowContentValues.class,
-                ShadowContext.class,
-                ShadowContextWrapper.class,
-                ShadowContextThemeWrapper.class,
-                ShadowCookieManager.class,
-                ShadowDefaultRequestDirector.class,
-                ShadowDisplay.class,
-                ShadowDrawable.class,
-                ShadowDialog.class,
-                ShadowEditText.class,
-                ShadowExpandableListView.class,
-                ShadowFloatMath.class,
-                ShadowGeocoder.class,
-                ShadowGeoPoint.class,
-                ShadowHandler.class,
-                ShadowImageView.class,
-                ShadowIntent.class,
-                ShadowIntentFilter.class,
-                ShadowItemizedOverlay.class,
-                ShadowLayoutInflater.class,
-                ShadowLayoutParams.class,
-                ShadowListActivity.class,
-                ShadowListView.class,
-                ShadowLocation.class,
-                ShadowLocationManager.class,
-                ShadowLooper.class,
-                ShadowMapController.class,
-                ShadowMapActivity.class,
-                ShadowMapView.class,
-                ShadowMatrix.class,
-                ShadowMediaPlayer.class,
-                ShadowMediaRecorder.class,
-                ShadowMediaStore.ShadowImages.ShadowMedia.class,
-                ShadowMenuInflater.class,
-                ShadowMotionEvent.class,
-                ShadowNetworkInfo.class,
-                ShadowOverlayItem.class,
-                ShadowPaint.class,
-                ShadowPath.class,
-                ShadowPendingIntent.class,
-                ShadowPoint.class,
-                ShadowPointF.class,
-                ShadowPowerManager.class,
-                ShadowPreference.class,
-                ShadowPreferenceActivity.class,
-                ShadowPreferenceCategory.class,
-                ShadowPreferenceGroup.class,
-                ShadowPreferenceManager.class,
-                ShadowPreferenceScreen.class,
-                ShadowRect.class,
-                ShadowRemoteViews.class,
-                ShadowResources.class,
-                ShadowResources.ShadowTheme.class,
-                ShadowService.class,
-                ShadowSettings.class,
-                ShadowSettings.ShadowSecure.class,
-                ShadowSettings.ShadowSystem.class,
-                ShadowSpannableStringBuilder.class,
-                ShadowSQLiteDatabase.class,
-                ShadowSQLiteCursor.class,
-                ShadowSQLiteOpenHelper.class,
-                ShadowSQLiteQueryBuilder.class,
-                ShadowSurfaceView.class,
-                ShadowTextUtils.class,
-                ShadowTextView.class,
-                ShadowToast.class,
-                ShadowTypedArray.class,
-                ShadowTypedValue.class,
-                ShadowURLSpan.class,
-                ShadowView.class,
-                ShadowViewGroup.class,
-                ShadowViewStub.class,
-                ShadowWebSettings.class,
-                ShadowWebView.class,
-                ShadowWifiManager.class,
-                ShadowWindow.class,
-                ShadowZoomButtonsController.class
-        );
+        return Arrays.asList(ShadowAbsoluteLayout.class, ShadowAbsSpinner.class, ShadowAbstractCursor.class, ShadowActivity.class, ShadowAdapterView.class,
+                ShadowAddress.class, ShadowAlarmManager.class, ShadowAlertDialog.class, ShadowAlertDialog.ShadowBuilder.class, ShadowApplication.class,
+                ShadowAppWidgetManager.class, ShadowArrayAdapter.class, ShadowAssetManager.class, ShadowAsyncTask.class, ShadowAudioManager.class,
+                ShadowBaseAdapter.class, ShadowBitmap.class, ShadowBitmapDrawable.class, ShadowBitmapFactory.class, ShadowBluetoothAdapter.class,
+                ShadowBluetoothDevice.class, ShadowBundle.class, ShadowCamera.class, ShadowCameraParameters.class, ShadowCameraSize.class, ShadowCanvas.class,
+                ShadowColorMatrix.class, ShadowColorMatrixColorFilter.class, ShadowColorStateList.class, ShadowComponentName.class, ShadowCompoundButton.class,
+                ShadowConfiguration.class, ShadowConnectivityManager.class, ShadowContentResolver.class, ShadowContentValues.class, ShadowContext.class,
+                ShadowContextWrapper.class, ShadowContextThemeWrapper.class, ShadowCookieManager.class, ShadowDefaultRequestDirector.class,
+                ShadowDisplay.class, ShadowDrawable.class, ShadowDialog.class, ShadowEditText.class, ShadowExpandableListView.class, ShadowFloatMath.class,
+                ShadowGeocoder.class, ShadowGeoPoint.class, ShadowHandler.class, ShadowImageView.class, ShadowIntent.class, ShadowIntentFilter.class,
+                ShadowItemizedOverlay.class, ShadowLayoutInflater.class, ShadowLayoutParams.class, ShadowListActivity.class, ShadowListView.class,
+                ShadowLocation.class, ShadowLocationManager.class, ShadowLooper.class, ShadowMapController.class, ShadowMapActivity.class, ShadowMapView.class,
+                ShadowMatrix.class, ShadowMediaPlayer.class, ShadowMediaRecorder.class, ShadowMediaStore.ShadowImages.ShadowMedia.class,
+                ShadowMenuInflater.class, ShadowMotionEvent.class, ShadowNetworkInfo.class, ShadowOverlayItem.class, ShadowPaint.class, ShadowPath.class,
+                ShadowPendingIntent.class, ShadowPoint.class, ShadowPointF.class, ShadowPowerManager.class, ShadowPreference.class,
+                ShadowPreferenceActivity.class, ShadowPreferenceCategory.class, ShadowPreferenceGroup.class, ShadowPreferenceManager.class,
+                ShadowPreferenceScreen.class, ShadowRect.class, ShadowRemoteViews.class, ShadowResources.class, ShadowResources.ShadowTheme.class,
+                ShadowService.class, ShadowSettings.class, ShadowSettings.ShadowSecure.class, ShadowSettings.ShadowSystem.class,
+                ShadowSpannableStringBuilder.class, ShadowSQLiteDatabase.class, ShadowSQLiteCursor.class, ShadowSQLiteOpenHelper.class,
+                ShadowSQLiteQueryBuilder.class, ShadowSurfaceView.class, ShadowTextUtils.class, ShadowTextView.class, ShadowToast.class,
+                ShadowTypedArray.class, ShadowTypedValue.class, ShadowURLSpan.class, ShadowView.class, ShadowViewGroup.class, ShadowViewStub.class,
+                ShadowWebSettings.class, ShadowWebView.class, ShadowWifiManager.class, ShadowWindow.class, ShadowZoomButtonsController.class);
     }
 
     public static void resetStaticState() {
@@ -296,26 +206,26 @@ public class Robolectric {
     public static ShadowPath shadowOf(Path instance) {
         return (ShadowPath) shadowOf_(instance);
     }
-    
+
     public static ShadowPreference shadowOf(Preference instance) {
-		return (ShadowPreference) shadowOf_(instance);
-	}
+        return (ShadowPreference) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceActivity shadowOf(PreferenceActivity instance) {
-		return (ShadowPreferenceActivity) shadowOf_(instance);
-	}
+    public static ShadowPreferenceActivity shadowOf(PreferenceActivity instance) {
+        return (ShadowPreferenceActivity) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceCategory shadowOf(PreferenceCategory instance) {
-		return (ShadowPreferenceCategory) shadowOf_(instance);
-	}
+    public static ShadowPreferenceCategory shadowOf(PreferenceCategory instance) {
+        return (ShadowPreferenceCategory) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceGroup shadowOf(PreferenceGroup instance) {
-		return (ShadowPreferenceGroup) shadowOf_(instance);
-	}
+    public static ShadowPreferenceGroup shadowOf(PreferenceGroup instance) {
+        return (ShadowPreferenceGroup) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceScreen shadowOf(PreferenceScreen instance) {
-		return (ShadowPreferenceScreen) shadowOf_(instance);
-	}
+    public static ShadowPreferenceScreen shadowOf(PreferenceScreen instance) {
+        return (ShadowPreferenceScreen) shadowOf_(instance);
+    }
 
     public static ShadowListActivity shadowOf(ListActivity instance) {
         return (ShadowListActivity) shadowOf_(instance);
@@ -489,7 +399,7 @@ public class Robolectric {
         return (ShadowMotionEvent) Robolectric.shadowOf_(other);
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings( { "unchecked" })
     public static <P, R> P shadowOf_(R instance) {
         return (P) ShadowWrangler.getInstance().shadowOf(instance);
     }
@@ -505,8 +415,8 @@ public class Robolectric {
     }
 
     /**
-     * Runs any immediately runnable tasks previously queued on the UI thread,
-     * e.g. by {@link Activity#runOnUiThread(Runnable)} or {@link android.os.AsyncTask#onPostExecute(Object)}.
+     * Runs any immediately runnable tasks previously queued on the UI thread, e.g. by {@link Activity#runOnUiThread(Runnable)} or
+     * {@link android.os.AsyncTask#onPostExecute(Object)}.
      * <p/>
      * <p/>
      * Note: calling this method does not pause or un-pause the scheduler.
@@ -517,9 +427,11 @@ public class Robolectric {
 
     /**
      * Sets up an HTTP response to be returned by calls to Apache's {@code HttpClient} implementers.
-     *
-     * @param statusCode   the status code of the response
-     * @param responseBody the body of the response
+     * 
+     * @param statusCode
+     *            the status code of the response
+     * @param responseBody
+     *            the body of the response
      */
     public static void addPendingHttpResponse(int statusCode, String responseBody) {
         getFakeHttpLayer().addPendingHttpResponse(statusCode, responseBody);
@@ -527,8 +439,9 @@ public class Robolectric {
 
     /**
      * Sets up an HTTP response to be returned by calls to Apache's {@code HttpClient} implementers.
-     *
-     * @param httpResponse the response
+     * 
+     * @param httpResponse
+     *            the response
      */
     public static void addPendingHttpResponse(HttpResponse httpResponse) {
         getFakeHttpLayer().addPendingHttpResponse(httpResponse);
@@ -536,8 +449,9 @@ public class Robolectric {
 
     /**
      * Accessor to obtain HTTP requests made during the current test in the order in which they were made.
-     *
-     * @param index index of the request to retrieve.
+     * 
+     * @param index
+     *            index of the request to retrieve.
      * @return the requested request.
      */
     public static HttpRequest getSentHttpRequest(int index) {
@@ -546,8 +460,9 @@ public class Robolectric {
 
     /**
      * Accessor to obtain metadata for an HTTP request made during the current test in the order in which they were made.
-     *
-     * @param index index of the request to retrieve.
+     * 
+     * @param index
+     *            index of the request to retrieve.
      * @return the requested request metadata.
      */
     public static HttpRequestInfo getSentHttpRequestInfo(int index) {
@@ -556,10 +471,13 @@ public class Robolectric {
 
     /**
      * Adds an HTTP response rule. The response will be returned when the rule is matched.
-     *
-     * @param method   method to match.
-     * @param uri      uri to match.
-     * @param response response to return when a match is found.
+     * 
+     * @param method
+     *            method to match.
+     * @param uri
+     *            uri to match.
+     * @param response
+     *            response to return when a match is found.
      */
     public static void addHttpResponseRule(String method, String uri, HttpResponse response) {
         getFakeHttpLayer().addHttpResponseRule(method, uri, response);
@@ -567,9 +485,11 @@ public class Robolectric {
 
     /**
      * Adds an HTTP response rule with a default method of GET. The response will be returned when the rule is matched.
-     *
-     * @param uri      uri to match.
-     * @param response response to return when a match is found.
+     * 
+     * @param uri
+     *            uri to match.
+     * @param response
+     *            response to return when a match is found.
      */
     public static void addHttpResponseRule(String uri, HttpResponse response) {
         getFakeHttpLayer().addHttpResponseRule(uri, response);
@@ -577,9 +497,11 @@ public class Robolectric {
 
     /**
      * Adds an HTTP response rule. The response will be returned when the rule is matched.
-     *
-     * @param uri      uri to match.
-     * @param response response to return when a match is found.
+     * 
+     * @param uri
+     *            uri to match.
+     * @param response
+     *            response to return when a match is found.
      */
     public static void addHttpResponseRule(String uri, String response) {
         getFakeHttpLayer().addHttpResponseRule(uri, response);
@@ -587,9 +509,11 @@ public class Robolectric {
 
     /**
      * Adds an HTTP response rule. The response will be returned when the rule is matched.
-     *
-     * @param requestMatcher custom {@code RequestMatcher}.
-     * @param response       response to return when a match is found.
+     * 
+     * @param requestMatcher
+     *            custom {@code RequestMatcher}.
+     * @param response
+     *            response to return when a match is found.
      */
     public static void addHttpResponseRule(RequestMatcher requestMatcher, HttpResponse response) {
         getFakeHttpLayer().addHttpResponseRule(requestMatcher, response);
@@ -636,12 +560,13 @@ public class Robolectric {
     }
 
     /**
-     * Calls {@code performClick()} on a {@code View} after ensuring that it and its ancestors are visible and that it
-     * is enabled.
-     *
-     * @param view the view to click on
+     * Calls {@code performClick()} on a {@code View} after ensuring that it and its ancestors are visible and that it is enabled.
+     * 
+     * @param view
+     *            the view to click on
      * @return true if {@code View.OnClickListener}s were found and fired, false otherwise.
-     * @throws RuntimeException if the preconditions are not met.
+     * @throws RuntimeException
+     *             if the preconditions are not met.
      */
     public static boolean clickOn(View view) {
         return shadowOf(view).checkedPerformClick();
