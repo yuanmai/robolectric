@@ -646,6 +646,6 @@ public class Robolectric {
     }
 
     public static String visualize(Bitmap bitmap) {
-        return shadowOf(bitmap).getOrigin();
+        return shadowOf(bitmap).getOriginalDescription();
     }
 }

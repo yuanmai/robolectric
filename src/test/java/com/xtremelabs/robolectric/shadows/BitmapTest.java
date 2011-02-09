@@ -21,7 +21,7 @@ public class BitmapTest {
     @Test
     public void defaultCtor_shouldSetTheOriginToDefault() throws Exception {
         Bitmap emptyBitmap = Robolectric.newInstanceOf(Bitmap.class);
-        assertThat(shadowOf(emptyBitmap).getOrigin(), equalTo("Empty bitmap"));
+        assertThat(shadowOf(emptyBitmap).getOriginalDescription(), equalTo("Empty bitmap"));
     }
 
     @Test

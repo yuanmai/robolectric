@@ -92,6 +92,6 @@ public class ShadowMatrix {
             description += "scaleX: " + scaleX + ", scaleY: " + scaleY;
         }
 
-        return description;
+        return description.isEmpty() ? "none" : description;
     }
 }

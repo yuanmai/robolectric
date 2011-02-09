@@ -26,14 +26,14 @@ public class ShadowBitmap {
 
     private int width;
     private int height;
-    private String origin = "Empty bitmap";
+    private String originalDescription = "Empty bitmap";
     private int loadedFromResourceId = -1;
     private List<DrawEvent> drawEvents = new ArrayList<DrawEvent>();
 
     @Implementation
     public boolean compress(Bitmap.CompressFormat format, int quality, OutputStream stream) {
         try {
-            stream.write((origin + " compressed as " + format + " with quality " + quality).getBytes());
+            stream.write((originalDescription + " compressed as " + format + " with quality " + quality).getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -55,7 +55,7 @@ public class ShadowBitmap {
     public static Bitmap createScaledBitmap(Bitmap src, int dstWidth, int dstHeight, boolean filter) {
         Bitmap scaledBitmap = Robolectric.newInstanceOf(Bitmap.class);
         ShadowBitmap shadowBitmap = shadowOf(scaledBitmap);
-        shadowBitmap.appendDescription(shadowOf(src).getOrigin());
+        shadowBitmap.setOriginalDescription("Created from: " + shadowOf(src).getOriginalDescription());
         shadowBitmap.appendDescription(" scaled to " + dstWidth + " x " + dstHeight);
         if (filter) {
             shadowBitmap.appendDescription(" with filter " + filter);
@@ -66,15 +66,15 @@ public class ShadowBitmap {
     }
 
     private void appendDescription(String s) {
-        origin += s;
+        originalDescription += s;
     }
 
-    public void setOrigin(String s) {
-        origin = s;
+    public void setOriginalDescription(String s) {
+        originalDescription = s;
     }
 
-    public String getOrigin() {
-        return origin;
+    public String getOriginalDescription() {
+        return originalDescription;
     }
 
     public static Bitmap create(String name) {
@@ -122,7 +122,7 @@ public class ShadowBitmap {
 
         if (height != that.height) return false;
         if (width != that.width) return false;
-        if (origin != null ? !origin.equals(that.origin) : that.origin != null) return false;
+        if (originalDescription != null ? !originalDescription.equals(that.originalDescription) : that.originalDescription != null) return false;
 
         return true;
     }
@@ -132,7 +132,7 @@ public class ShadowBitmap {
     public int hashCode() {
         int result = width;
         result = 31 * result + height;
-        result = 31 * result + (origin != null ? origin.hashCode() : 0);
+        result = 31 * result + (originalDescription != null ? originalDescription.hashCode() : 0);
         return result;
     }
 
@@ -140,7 +140,7 @@ public class ShadowBitmap {
     @Implementation
     public String toString() {
         return "ShadowBitmap{" +
-                "description='" + origin + '\'' +
+                "description='" + originalDescription + '\'' +
                 ", width=" + width +
                 ", height=" + height +
                 '}';
@@ -159,7 +159,7 @@ public class ShadowBitmap {
     }
 
     private String getDescription(String indent) {
-        String description = indent + origin;
+        String description = indent + originalDescription;
         for (DrawEvent drawEvent : drawEvents) {
             description += "\n\t" + indent + drawEvent.getCommand() + ": " + drawEvent.getDescription();
             ShadowBitmap bitmap = drawEvent.getBitmap();

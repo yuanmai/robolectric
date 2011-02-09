@@ -31,7 +31,7 @@ public class BitmapDrawableTest {
     @Test
     public void getBitmap_shouldReturnBitmapUsedToDraw() throws Exception {
         BitmapDrawable drawable = (BitmapDrawable) resources.getDrawable(R.drawable.an_image);
-        assertEquals("Bitmap for resource: drawable/an_image", shadowOf(drawable.getBitmap()).getOrigin());
+        assertEquals("Bitmap for resource: drawable/an_image", shadowOf(drawable.getBitmap()).getOriginalDescription());
     }
 
     @Test

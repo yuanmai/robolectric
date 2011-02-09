@@ -70,7 +70,7 @@ public class ShadowBitmapFactory {
             description.append(" with options ");
             description.append(optionsString);
         }
-        shadowBitmap.setOrigin(description.toString());
+        shadowBitmap.setOriginalDescription(description.toString());
 
         Point widthAndHeight = widthAndHeightMap.get(name);
         if (widthAndHeight == null) {

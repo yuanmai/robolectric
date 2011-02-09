@@ -26,8 +26,8 @@ public class ShadowCanvas {
 
     private float translateX;
     private float translateY;
-    private float scaleX = 1;
-    private float scaleY = 1;
+//    private float scaleX = 1;
+//    private float scaleY = 1;
 
     public void __constructor__(Bitmap bitmap) {
         this.targetBitmap = bitmap;
@@ -45,14 +45,14 @@ public class ShadowCanvas {
 
     @Implementation
     public void scale(float sx, float sy) {
-        this.scaleX = sx;
-        this.scaleY = sy;
+//        this.scaleX = sx;
+//        this.scaleY = sy;
     }
 
     @Implementation
     public void scale(float sx, float sy, float px, float py) {
-        this.scaleX = sx;
-        this.scaleY = sy;
+//        this.scaleX = sx;
+//        this.scaleY = sy;
     }
 
     @Implementation
