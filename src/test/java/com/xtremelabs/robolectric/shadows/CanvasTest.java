@@ -3,6 +3,8 @@ package com.xtremelabs.robolectric.shadows;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import com.xtremelabs.robolectric.Robolectric;
@@ -26,12 +28,14 @@ public class CanvasTest {
     private Bitmap targetBitmap;
     private Canvas canvas;
     private Paint paint;
+    private Bitmap imageBitmap;
 
     @Before
     public void setUp() throws Exception {
         targetBitmap = Robolectric.newInstanceOf(Bitmap.class);
         canvas = new Canvas(targetBitmap);
         paint = new Paint();
+        imageBitmap = BitmapFactory.decodeFile("/an/image.jpg");
     }
 
     @Test
@@ -148,79 +152,88 @@ public class CanvasTest {
         assertTrue(description, description.contains("with matrix:"));
     }
 
-//    @Test
-//    public void shouldReceiveDescriptionWhenDrawABitmapToCanvasWithAPaintEffect() throws Exception {
-//        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
-//        shadowOf(bitmap1).appendDescription("Bitmap One");
-//
-//        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
-//        shadowOf(bitmap2).appendDescription("Bitmap Two");
-//
-//        Canvas canvas = new Canvas(bitmap1);
-//        Paint paint = new Paint();
-//        paint.setColorFilter(new ColorMatrixColorFilter(new ColorMatrix()));
-//        canvas.drawBitmap(bitmap2, new Matrix(), paint);
-//
-//        assertEquals("Bitmap One\nBitmap Two with ColorMatrixColorFilter<1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0> transformed by matrix", shadowOf(bitmap1).getDescription());
-//    }
-//
-//    @Test
-//    public void visualize_shouldReturnDescription() throws Exception {
-//        Bitmap bitmap = Robolectric.newInstanceOf(Bitmap.class);
-//        shadowOf(bitmap).appendDescription("Bitmap One");
-//
-//        assertEquals("Bitmap One", Robolectric.visualize(bitmap));
-//
-//    }
-//
-//    @Test
-//    public void shouldDescribeBitmapDrawing() throws Exception {
-//        Canvas canvas = new Canvas(targetBitmap);
-//        canvas.drawBitmap(imageBitmap, 1, 2, new Paint());
-//        canvas.drawBitmap(imageBitmap, 100, 200, new Paint());
-//
-//        assertEquals("Bitmap for file:/an/image.jpg at (1,2)\n" +
-//                "Bitmap for file:/an/image.jpg at (100,200)", shadowOf(canvas).getDescription());
-//
-//        assertEquals("Bitmap for file:/an/image.jpg at (1,2)\n" +
-//                "Bitmap for file:/an/image.jpg at (100,200)", shadowOf(targetBitmap).getDescription());
-//    }
-//
-//    @Test
-//    public void shouldDescribeBitmapDrawing_WithMatrix() throws Exception {
-//        Canvas canvas = new Canvas(targetBitmap);
-//        canvas.drawBitmap(imageBitmap, new Matrix(), new Paint());
-//        canvas.drawBitmap(imageBitmap, new Matrix(), new Paint());
-//
-//        assertEquals("Bitmap for file:/an/image.jpg transformed by matrix\n" +
-//                "Bitmap for file:/an/image.jpg transformed by matrix", shadowOf(canvas).getDescription());
-//
-//        assertEquals("Bitmap for file:/an/image.jpg transformed by matrix\n" +
-//                "Bitmap for file:/an/image.jpg transformed by matrix", shadowOf(targetBitmap).getDescription());
-//    }
-//
-//    @Test
-//    public void visualize_shouldReturnDescription() throws Exception {
-//        Canvas canvas = new Canvas(targetBitmap);
-//        canvas.drawBitmap(imageBitmap, new Matrix(), new Paint());
-//        canvas.drawBitmap(imageBitmap, new Matrix(), new Paint());
-//
-//        assertEquals("Bitmap for file:/an/image.jpg transformed by matrix\n" +
-//                "Bitmap for file:/an/image.jpg transformed by matrix", Robolectric.visualize(canvas));
-//
-//    }
+    @Test
+    public void shouldReceiveDescriptionWhenDrawABitmapToCanvasWithAPaintEffect() throws Exception {
+        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap1).setOriginalDescription("Bitmap One");
 
-//    @Test
-//    public void shouldRescaleBitmap() throws Exception {
-//        Bitmap originalBitmap = Robolectric.newInstanceOf(Bitmap.class);
-//        shadowOf(originalBitmap).setOriginalDescription("Original bitmap");
-//
-//        Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 100, 200, false);
-//        Canvas scaledBitmapCanvas = new Canvas(scaledBitmap);
-//        scaledBitmapCanvas.scale(1.5f, 1.5f);
-//
-//        assertEquals("Created from: Original bitmap scaled to 150 x 300", shadowOf(scaledBitmapCanvas).getDescription());
-//        assertEquals(150, scaledBitmap.getWidth());
-//        assertEquals(300, scaledBitmap.getHeight());
-//    }
+        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap2).setOriginalDescription("Bitmap Two");
+
+        Canvas canvas = new Canvas(bitmap1);
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(new ColorMatrix()));
+        canvas.drawBitmap(bitmap2, new Matrix(), paint);
+
+        String description = shadowOf(canvas).getDescription();
+        assertTrue(description, description.startsWith("Bitmap One"));
+        assertTrue(description, description.contains("with bitmap:"));
+        assertTrue(description, description.contains("Bitmap Two"));
+        assertTrue(description, description.contains("with matrix:"));
+        assertTrue(description, description.contains("with color filter:"));
+        assertTrue(description, description.contains("with matrix:"));
+        assertTrue(description, description.contains("ColorMatrixColorFilter<1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0>"));
+    }
+
+    @Test
+    public void visualize_shouldReturnDescription() throws Exception {
+        Bitmap bitmap = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap).setOriginalDescription("Bitmap One");
+
+
+        assertEquals("Bitmap One", Robolectric.visualize(bitmap));
+    }
+
+    @Test
+    public void shouldDescribeBitmapDrawing() throws Exception {
+        Canvas canvas = new Canvas(targetBitmap);
+        canvas.drawBitmap(imageBitmap, 1, 2, new Paint());
+        canvas.drawBitmap(imageBitmap, 100, 200, new Paint());
+
+        String description = shadowOf(canvas).getDescription();
+        assertTrue(description, description.contains("Bitmap for file: /an/image.jpg"));
+        description.replace("Bitmap for file: /an/image.jpg", "");
+        assertTrue(description, description.contains("Bitmap for file: /an/image.jpg"));
+        assertTrue(description, description.contains("left: 1.0, top: 2.0"));
+        assertTrue(description, description.contains("left: 100.0, top: 200.0"));
+    }
+
+    @Test
+    public void shouldDescribeBitmapDrawing_WithMatrix() throws Exception {
+        Canvas canvas = new Canvas(targetBitmap);
+        canvas.drawBitmap(imageBitmap, new Matrix(), new Paint());
+        canvas.drawBitmap(imageBitmap, new Matrix(), new Paint());
+
+        String description = shadowOf(canvas).getDescription();
+        assertHasTwoBitmapsWithMatrix(description);
+
+        description = shadowOf(targetBitmap).getDescription();
+        assertHasTwoBitmapsWithMatrix(description);
+    }
+
+    private void assertHasTwoBitmapsWithMatrix(String description) {
+        assertTrue(description, description.contains("Bitmap for file: /an/image.jpg"));
+        assertTrue(description, description.contains("with matrix:"));
+        description.replace("Bitmap for file: /an/image.jpg", "");
+        description.replace("with matrix:", "");
+        assertTrue(description, description.contains("Bitmap for file: /an/image.jpg"));
+        assertTrue(description, description.contains("with matrix:"));
+    }
+
+    @Test
+    public void shouldRescaleBitmap() throws Exception {
+        Bitmap originalBitmap = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(originalBitmap).setOriginalDescription("Original bitmap");
+
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 100, 200, false);
+        Canvas scaledBitmapCanvas = new Canvas(scaledBitmap);
+        scaledBitmapCanvas.scale(1.5f, 1.5f);
+
+        String description = shadowOf(scaledBitmapCanvas).getDescription();
+        assertTrue(description, description.contains("Created from: Original bitmap scaled to 100 x 200"));
+        assertTrue(description, description.contains("scale: by: 1.5 x 1.5"));
+
+        assertEquals(150, scaledBitmap.getWidth());
+        assertEquals(300, scaledBitmap.getHeight());
+    }
 }

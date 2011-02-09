@@ -112,6 +112,12 @@ public class ShadowBitmap {
         return height;
     }
 
+    public void scale(float sx, float sy){
+        setHeight((int) (getHeight()*sx));
+        setWidth((int) (getWidth()*sy));
+        appendDrawEvent(new ShadowBitmap.DrawEvent("scale", "by: " + sx + " x " + sy));
+    }
+    
     @Override
     @Implementation
     public boolean equals(Object o) {
@@ -197,6 +203,10 @@ public class ShadowBitmap {
 
         public DrawEvent(String command, String description, Paint paint, Matrix matrix) {
             this(command, description, paint, null, matrix);
+        }
+
+        public DrawEvent(String command, String description) {
+            this(command, description, null, null, null);
         }
 
         public DrawEvent(String command, String description, Paint paint, Bitmap bitmap, Matrix matrix) {

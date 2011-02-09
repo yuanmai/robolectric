@@ -45,6 +45,7 @@ public class ShadowCanvas {
 
     @Implementation
     public void scale(float sx, float sy) {
+        shadowOf(targetBitmap).scale(sx, sy);
 //        this.scaleX = sx;
 //        this.scaleY = sy;
     }
