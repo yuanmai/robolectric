@@ -1,6 +1,7 @@
 package com.xtremelabs.robolectric.content;
 
 import android.content.SharedPreferences;
+import com.xtremelabs.robolectric.tester.android.content.TestSharedPreferences;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,6 +40,28 @@ public class TestSharedPreferencesTest {
         assertThat(anotherSharedPreferences.getInt("int", 666), equalTo(2));
         assertThat(anotherSharedPreferences.getLong("long", 666l), equalTo(3l));
         assertThat(anotherSharedPreferences.getString("string", "wacka wa"), equalTo("foobar"));
+    }
+
+    @Test
+    public void commit_shouldRemoveValues() throws Exception {
+        editor.putString("deleteMe", "foobar");
+        editor.remove("deleteMe");
+
+        editor.putString("dontDeleteMe", "quux");
+        editor.remove("dontDeleteMe");
+        editor.putString("dontDeleteMe", "baz");
+
+        editor.commit();
+
+        TestSharedPreferences anotherSharedPreferences = new TestSharedPreferences(content, "prefsName", 3);
+        assertTrue(anotherSharedPreferences.getBoolean("boolean", false));
+        assertThat(anotherSharedPreferences.getFloat("float", 666f), equalTo(1.1f));
+        assertThat(anotherSharedPreferences.getInt("int", 666), equalTo(2));
+        assertThat(anotherSharedPreferences.getLong("long", 666l), equalTo(3l));
+        assertThat(anotherSharedPreferences.getString("string", "wacka wa"), equalTo("foobar"));
+
+        assertThat(anotherSharedPreferences.contains("deleteMe"), equalTo(false));
+        assertThat(anotherSharedPreferences.getString("dontDeleteMe", "oops"), equalTo("baz"));
     }
 
     @Test

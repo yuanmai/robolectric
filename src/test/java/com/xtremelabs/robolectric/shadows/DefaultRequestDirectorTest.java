@@ -2,6 +2,9 @@ package com.xtremelabs.robolectric.shadows;
 
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
+import com.xtremelabs.robolectric.tester.org.apache.http.FakeHttpLayer;
+import com.xtremelabs.robolectric.tester.org.apache.http.RequestMatcher;
+import com.xtremelabs.robolectric.tester.org.apache.http.TestHttpResponse;
 import com.xtremelabs.robolectric.util.Strings;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -30,10 +33,10 @@ public class DefaultRequestDirectorTest {
     @Before
     public void setUp_EnsureStaticStateIsReset() {
         FakeHttpLayer fakeHttpLayer = Robolectric.getFakeHttpLayer();
-        assertTrue(fakeHttpLayer.pendingHttpResponses.isEmpty());
-        assertTrue(fakeHttpLayer.httpRequestInfos.isEmpty());
-        assertTrue(fakeHttpLayer.httpResponseRules.isEmpty());
-        assertNull(fakeHttpLayer.defaultHttpResponse);
+        assertFalse(fakeHttpLayer.hasPendingResponses());
+        assertFalse(fakeHttpLayer.hasRequestInfos());
+        assertFalse(fakeHttpLayer.hasResponseRules());
+        assertNull(fakeHttpLayer.getDefaultResponse());
 
         connectionKeepAliveStrategy = new ConnectionKeepAliveStrategy() {
             @Override public long getKeepAliveDuration(HttpResponse httpResponse, HttpContext httpContext) {
@@ -86,7 +89,7 @@ public class DefaultRequestDirectorTest {
 
     @Test
     public void shouldReturnRequestsByRule_MatchingMethod() throws Exception {
-        Robolectric.setDefaultHttpResponse(new TestHttpResponse(404, "no such page"));
+        Robolectric.setDefaultHttpResponse(404, "no such page");
         Robolectric.addHttpResponseRule(HttpPost.METHOD_NAME, "http://some.uri",
                 new TestHttpResponse(200, "a cheery response body"));
 
@@ -124,9 +127,9 @@ public class DefaultRequestDirectorTest {
 
     @Test
     public void shouldReturnRequestsByRule_WithCustomRequestMatcher() throws Exception {
-        Robolectric.setDefaultHttpResponse(new TestHttpResponse(404, "no such page"));
+        Robolectric.setDefaultHttpResponse(404, "no such page");
 
-        Robolectric.addHttpResponseRule(new FakeHttpLayer.RequestMatcher() {
+        Robolectric.addHttpResponseRule(new RequestMatcher() {
             @Override public boolean matches(HttpRequest request) {
                 return request.getRequestLine().getUri().equals("http://matching.uri");
             }

@@ -2,7 +2,6 @@ package com.xtremelabs.robolectric;
 
 import android.content.Context;
 import android.view.View;
-import com.xtremelabs.robolectric.bytecode.ShadowWranglerTest;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.util.TestOnClickListener;
@@ -24,7 +23,7 @@ public class RobolectricTest {
 
     private PrintStream originalSystemOut;
     private ByteArrayOutputStream buff;
-	private String defaultLineSeparator;
+    private String defaultLineSeparator;
 
     @Before
     public void setUp() {
@@ -36,10 +35,10 @@ public class RobolectricTest {
         PrintStream testOut = new PrintStream(buff);
         System.setOut(testOut);
     }
-    
+
     @After
     public void tearDown() throws Exception {
-    	System.setProperty("line.separator", defaultLineSeparator);
+        System.setProperty("line.separator", defaultLineSeparator);
         System.setOut(originalSystemOut);
     }
 
@@ -53,7 +52,8 @@ public class RobolectricTest {
         // There's a shadow method for this
         aView.getContext();
         String output = buff.toString();
-        assertEquals("", output);
+        assertEquals("No Shadow method found for View.<init>(android.content.Context)\n", output);
+        buff.reset();
 
         aView.findViewById(27);
         // No shadow here... should be logged
@@ -70,7 +70,7 @@ public class RobolectricTest {
         assertEquals("", output);
     }
 
-    @Test(expected= RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void clickOn_shouldThrowIfViewIsDisabled() throws Exception {
         View view = new View(null);
         view.setEnabled(false);
@@ -98,7 +98,7 @@ public class RobolectricTest {
     }
 
     @Implements(View.class)
-    public static class TestShadowView extends ShadowWranglerTest.TestShadowViewParent {
+    public static class TestShadowView {
         @SuppressWarnings({"UnusedDeclaration"})
         @Implementation
         public Context getContext() {

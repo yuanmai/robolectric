@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import com.xtremelabs.robolectric.internal.TestAttributeSet;
+import com.xtremelabs.robolectric.tester.android.util.TestAttributeSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -14,6 +14,7 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class ViewLoader extends XmlLoader {
     }
 
     @Override
-    protected void processResourceXml(File xmlFile, Document document) throws Exception {
+    protected void processResourceXml(File xmlFile, Document document, boolean ignored) throws Exception {
         ViewNode topLevelNode = new ViewNode("top-level", new HashMap<String, String>());
         processChildren(document.getChildNodes(), topLevelNode);
         viewNodesByLayoutName.put(
@@ -126,14 +127,21 @@ public class ViewLoader extends XmlLoader {
             for (ViewNode child : children) {
                 child.inflate(context, view);
             }
+
+            invokeOnFinishInflate(view);
             return view;
+        }
+
+        private void invokeOnFinishInflate(View view) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+            Method onFinishInflate = View.class.getDeclaredMethod("onFinishInflate");
+            onFinishInflate.setAccessible(true);
+            onFinishInflate.invoke(view);
         }
 
         private View create(Context context, ViewGroup parent) throws Exception {
             if (name.equals("include")) {
                 String layout = attributes.get("layout");
                 View view = inflateView(context, layout.substring(1), attributes, parent);
-                addToParent(parent, view);
                 return view;
             } else if (name.equals("merge")) {
                 return parent;

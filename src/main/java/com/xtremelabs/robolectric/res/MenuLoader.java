@@ -3,6 +3,7 @@ package com.xtremelabs.robolectric.res;
 import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
+import com.xtremelabs.robolectric.tester.android.util.TestAttributeSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -16,24 +17,22 @@ import java.util.Map;
 
 public class MenuLoader extends XmlLoader {
     private Map<String, MenuNode> menuNodesByMenuName = new HashMap<String, MenuNode>();
-    private StringResourceLoader stringResourceLoader;
     private AttrResourceLoader attrResourceLoader;
 
-    public MenuLoader(ResourceExtractor resourceExtractor, StringResourceLoader stringResourceLoader, AttrResourceLoader attrResourceLoader) {
+    public MenuLoader(ResourceExtractor resourceExtractor, AttrResourceLoader attrResourceLoader) {
         super(resourceExtractor);
-        this.stringResourceLoader = stringResourceLoader;
         this.attrResourceLoader = attrResourceLoader;
     }
 
     @Override
-    protected void processResourceXml(File xmlFile, Document document) throws Exception {
+    protected void processResourceXml(File xmlFile, Document document, boolean ignored) throws Exception {
         MenuNode topLevelNode = new MenuNode("top-level", new HashMap<String, String>());
-		
-		NodeList items = document.getChildNodes();
-		if (items.getLength()!=1)
-			throw new RuntimeException("Expected only one top-level item in menu file "+xmlFile.getName());
-		if (items.item(0).getNodeName().compareTo("menu")!=0)
-			throw new RuntimeException("Expected a top-level item called 'menu' in menu file "+xmlFile.getName());
+
+        NodeList items = document.getChildNodes();
+        if (items.getLength() != 1)
+            throw new RuntimeException("Expected only one top-level item in menu file " + xmlFile.getName());
+        if (items.item(0).getNodeName().compareTo("menu") != 0)
+            throw new RuntimeException("Expected a top-level item called 'menu' in menu file " + xmlFile.getName());
 
         processChildren(items.item(0).getChildNodes(), topLevelNode);
         menuNodesByMenuName.put(
@@ -61,11 +60,11 @@ public class MenuLoader extends XmlLoader {
         }
 
         if (!name.startsWith("#")) {
-			MenuNode menuNode = new MenuNode(name, attrMap);
-			parent.addChild(menuNode);
-			if (node.getChildNodes().getLength() != 0)
-				throw new RuntimeException(node.getChildNodes().toString());
-		}
+            MenuNode menuNode = new MenuNode(name, attrMap);
+            parent.addChild(menuNode);
+            if (node.getChildNodes().getLength() != 0)
+                throw new RuntimeException(node.getChildNodes().toString());
+        }
     }
 
     public void inflateMenu(Context context, String key, Menu root) {
@@ -97,13 +96,13 @@ public class MenuLoader extends XmlLoader {
 
     public class MenuNode {
         private String name;
-        private final Map<String, String> attributes;
+        private final TestAttributeSet attributes;
 
         private List<MenuNode> children = new ArrayList<MenuNode>();
 
         public MenuNode(String name, Map<String, String> attributes) {
             this.name = name;
-            this.attributes = attributes;
+            this .attributes = new TestAttributeSet(attributes, resourceExtractor, attrResourceLoader, null);
         }
 
         public List<MenuNode> getChildren() {
@@ -116,12 +115,10 @@ public class MenuLoader extends XmlLoader {
 
         public void inflate(Context context, Menu root) throws Exception {
             for (MenuNode child : children) {
-				assert(child.getChildren().size() == 0);
-				MenuItem menuItem = root.add(child.attributes.get("android:id"));
-				assert (menuItem != null);
-				menuItem.setTitle(child.attributes.get("android:title"));
+                MenuItem menuItem = root.add(0, child.attributes.getAttributeResourceValue("android", "id", 0),
+                        0, child.attributes.getAttributeValue("android", "title"));
             }
         }
-	}
+    }
 }
 

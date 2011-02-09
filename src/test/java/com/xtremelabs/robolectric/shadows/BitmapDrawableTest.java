@@ -1,6 +1,5 @@
 package com.xtremelabs.robolectric.shadows;
 
-import android.app.Application;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
@@ -14,11 +13,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static android.test.MoreAsserts.assertNotEqual;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class BitmapDrawableTest {
@@ -26,10 +25,7 @@ public class BitmapDrawableTest {
 
     @Before
     public void setUp() throws Exception {
-        Robolectric.bindDefaultShadowClasses();
-
-        Application application = new Application();
-        resources = application.getResources();
+        resources = Robolectric.application.getResources();
     }
 
     @Test
@@ -46,7 +42,7 @@ public class BitmapDrawableTest {
 
         assertThat(shadowOf(canvas).getDescription(), containsString("Bitmap for resource: drawable/an_image"));
     }
-    
+
     @Test
     public void withColorFilterSet_draw_shouldCopyDescriptionToCanvas() throws Exception {
         BitmapDrawable drawable = (BitmapDrawable) resources.getDrawable(R.drawable.an_image);
@@ -66,7 +62,7 @@ public class BitmapDrawableTest {
         Drawable drawable2 = resources.getDrawable(R.drawable.an_other_image);
 
         assertEquals(drawable1a, drawable1b);
-        assertNotEqual(drawable1a, drawable2);
+        assertFalse(drawable1a.equals(drawable2));
     }
 
     @Test
@@ -80,7 +76,7 @@ public class BitmapDrawableTest {
         assertEquals(drawable1a, drawable1b);
 
         drawable1b.setBounds(1, 2, 3, 5);
-        assertNotEqual(drawable1a, drawable1b);
+        assertFalse(drawable1a.equals(drawable1b));
     }
 
     @Test

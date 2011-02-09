@@ -8,6 +8,7 @@ import com.xtremelabs.robolectric.R;
 import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import com.xtremelabs.robolectric.util.TestOnClickListener;
+import com.xtremelabs.robolectric.util.TestRunnable;
 import com.xtremelabs.robolectric.util.Transcript;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,18 +17,13 @@ import org.junit.runner.RunWith;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class ViewTest {
     private View view;
 
     @Before public void setUp() throws Exception {
-        Robolectric.bindDefaultShadowClasses();
-
         view = new View(null);
     }
 
@@ -84,7 +80,7 @@ public class ViewTest {
     @Test
     public void shouldKnowIfThisOrAncestorsAreVisible() throws Exception {
         assertTrue(shadowOf(view).derivedIsVisible());
-        
+
         ViewGroup grandParent = new LinearLayout(null);
         ViewGroup parent = new LinearLayout(null);
         grandParent.addView(parent);
@@ -114,7 +110,7 @@ public class ViewTest {
         assertTrue(clickListener.clicked);
     }
 
-    @Test(expected= RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void checkedClick_shouldThrowIfViewIsNotVisible() throws Exception {
         ViewGroup grandParent = new LinearLayout(null);
         ViewGroup parent = new LinearLayout(null);
@@ -125,10 +121,51 @@ public class ViewTest {
         shadowOf(view).checkedPerformClick();
     }
 
-    @Test(expected= RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void checkedClick_shouldThrowIfViewIsDisabled() throws Exception {
         view.setEnabled(false);
         shadowOf(view).checkedPerformClick();
     }
 
+
+    @Test
+    public void shouldRecordBackgroundColor() {
+        int[] colors = {0, 1, 727};
+
+        for (int color : colors) {
+            view.setBackgroundColor(color);
+            assertThat(shadowOf(view).getBackgroundColor(), equalTo(color));
+        }
+    }
+
+    @Test
+    public void shouldPostActionsToTheMessageQueue() throws Exception {
+        Robolectric.pauseMainLooper();
+
+        TestRunnable runnable = new TestRunnable();
+        view.post(runnable);
+        assertFalse(runnable.wasRun);
+
+        Robolectric.unPauseMainLooper();
+        assertTrue(runnable.wasRun);
+    }
+
+    @Test
+    public void shouldPostActionsToTheMessageQueueWithDelay() throws Exception {
+        Robolectric.pauseMainLooper();
+
+        TestRunnable runnable = new TestRunnable();
+        view.postDelayed(runnable, 1);
+        assertFalse(runnable.wasRun);
+
+        Robolectric.getUiThreadScheduler().advanceBy(1);
+        assertTrue(runnable.wasRun);
+    }
+
+    @Test
+    public void shouldSupportAllConstructors() throws Exception {
+        new View(null);
+        new View(null, null);
+        new View(null, null, 0);
+    }
 }

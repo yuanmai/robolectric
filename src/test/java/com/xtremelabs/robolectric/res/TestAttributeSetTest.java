@@ -3,7 +3,7 @@ package com.xtremelabs.robolectric.res;
 import android.view.View;
 import com.xtremelabs.robolectric.R;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
-import com.xtremelabs.robolectric.internal.TestAttributeSet;
+import com.xtremelabs.robolectric.tester.android.util.TestAttributeSet;
 import com.xtremelabs.robolectric.util.CustomView;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +24,15 @@ public class TestAttributeSetTest {
         attributes = new HashMap<String, String>();
 
         resourceExtractor = new ResourceExtractor();
-        resourceExtractor.addRClass(R.class);
+        resourceExtractor.addLocalRClass(R.class);
+        resourceExtractor.addSystemRClass(android.R.class);
+    }
+
+    @Test
+    public void getSystemAttributeResourceValue_shouldReturnTheResourceValue() throws Exception {
+        attributes.put("android:id", "@android:id/text1");
+        TestAttributeSet testAttributeSet = new TestAttributeSet(attributes, resourceExtractor, null, null);
+        assertThat(testAttributeSet.getAttributeResourceValue("android", "id", 0), equalTo(android.R.id.text1));
     }
 
     @Test

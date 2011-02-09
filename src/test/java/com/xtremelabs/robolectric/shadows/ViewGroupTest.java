@@ -5,10 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.xtremelabs.robolectric.R;
-import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import com.xtremelabs.robolectric.res.ResourceLoader;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +24,7 @@ import static org.junit.Assert.*;
 
 @RunWith(WithTestDefaultsRunner.class)
 public class ViewGroupTest {
-	private String defaultLineSeparator;
+    private String defaultLineSeparator;
     private ViewGroup root;
     private View child1;
     private View child2;
@@ -35,10 +33,8 @@ public class ViewGroupTest {
     private View child3b;
 
     @Before public void setUp() throws Exception {
-        Robolectric.bindDefaultShadowClasses();
-
         Application context = new Application();
-        ShadowApplication.bind(context, new ResourceLoader(R.class, null));
+        ShadowApplication.bind(context, new ResourceLoader(9, R.class, null, null));
 
         root = new FrameLayout(context);
 
@@ -54,14 +50,14 @@ public class ViewGroupTest {
 
         child3.addView(child3a);
         child3.addView(child3b);
-        
+
         defaultLineSeparator = System.getProperty("line.separator");
         System.setProperty("line.separator", "\n");
     }
-    
+
     @After
     public void tearDown() throws Exception {
-    	System.setProperty("line.separator", defaultLineSeparator);
+        System.setProperty("line.separator", defaultLineSeparator);
     }
 
     @Test
@@ -73,6 +69,17 @@ public class ViewGroupTest {
         assertThat(root.getChildAt(1), sameInstance((View) child3));
 
         assertThat(child2.getParent(), nullValue());
+    }
+
+    @Test
+    public void testAddViewAt() throws Exception {
+        root.removeAllViews();
+        root.addView(child1);
+        root.addView(child2);
+        root.addView(child3, 1);
+        assertThat(root.getChildAt(0), sameInstance(child1));
+        assertThat(root.getChildAt(1), sameInstance((View) child3));
+        assertThat(root.getChildAt(2), sameInstance(child2));
     }
 
     @Test

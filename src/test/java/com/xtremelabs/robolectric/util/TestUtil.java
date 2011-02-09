@@ -1,5 +1,7 @@
 package com.xtremelabs.robolectric.util;
 
+import com.xtremelabs.robolectric.RobolectricConfig;
+
 import java.io.File;
 import java.util.Collection;
 
@@ -41,10 +43,10 @@ public abstract class TestUtil {
     public static File resourcesBaseDir() {
         if (testDirLocation == null) {
             File testDir = file("src", "test", "resources");
-            if (testDir.isDirectory()) return testDirLocation = testDir;
+            if (hasTestManifest(testDir)) return testDirLocation = testDir;
 
             File roboTestDir = file("robolectric", "src", "test", "resources");
-            if (roboTestDir.isDirectory()) return testDirLocation = roboTestDir;
+            if (hasTestManifest(roboTestDir)) return testDirLocation = roboTestDir;
 
             throw new RuntimeException("can't find your TestAndroidManifest.xml in "
                     + testDir.getAbsolutePath() + " or " + roboTestDir.getAbsolutePath());
@@ -53,7 +55,15 @@ public abstract class TestUtil {
         }
     }
 
+    private static boolean hasTestManifest(File testDir) {
+        return new File(testDir, "TestAndroidManifest.xml").isFile();
+    }
+
     public static File resourceFile(String... pathParts) {
         return file(resourcesBaseDir(), pathParts);
+    }
+
+    public static RobolectricConfig newConfig(String androidManifestFile) {
+        return new RobolectricConfig(resourceFile(androidManifestFile), null, null);
     }
 }

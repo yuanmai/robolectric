@@ -29,8 +29,9 @@
          should be checked in in Version Control Systems. -->
     <property file="default.properties"/>
 
-    <exec executable="./find-android.bat" outputproperty="sdk.dir" failifexecutionfails="false"/>
-    <exec executable="./find-android.sh" outputproperty="sdk.dir" failifexecutionfails="false"/>
+    <exec executable="./find-android.bat" failifexecutionfails="false"/>
+    <exec executable="./find-android.sh" failifexecutionfails="false"/>
+    <property file="local.properties"/>
 
     <!-- Custom Android task to deal with the project target, and import the proper rules.
          This requires ant 1.6.0 or above. -->
@@ -199,5 +200,11 @@
             </classpath>
             <doctitle><![CDATA[<h1>Robolectric<br/>API Documentation</h1>]]></doctitle>
         </javadoc>
+    </target>
+
+    <target name="maven-install-jars" description="Install the jar files that Maven can't find for itself">
+        <exec executable="mvn">
+            <arg line="install:install-file -DgroupId=com.google.android.maps -DartifactId=maps -Dversion=9_r1 -Dpackaging=jar -Dfile=${sdk.dir}/add-ons/addon_google_apis_google_inc_9/libs/maps.jar" />
+        </exec>
     </target>
 </project>

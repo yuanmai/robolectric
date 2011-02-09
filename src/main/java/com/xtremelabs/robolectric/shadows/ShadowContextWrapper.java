@@ -8,19 +8,15 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Looper;
-import android.test.mock.MockPackageManager;
-import com.xtremelabs.robolectric.content.TestSharedPreferences;
+import com.xtremelabs.robolectric.tester.android.content.TestSharedPreferences;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.internal.RealObject;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.xtremelabs.robolectric.res.RobolectricPackageManager;
 
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
@@ -30,7 +26,7 @@ public class ShadowContextWrapper extends ShadowContext {
     @RealObject private ContextWrapper realContextWrapper;
     private Context baseContext;
 
-    private MockPackageManager packageManager;
+    private PackageManager packageManager;
 
     private String packageName;
 
@@ -41,6 +37,11 @@ public class ShadowContextWrapper extends ShadowContext {
     @Implementation
     public Context getApplicationContext() {
         return baseContext.getApplicationContext();
+    }
+
+    @Implementation
+    public Resources.Theme getTheme() {
+        return getResources().newTheme();
     }
 
     @Implementation
@@ -79,42 +80,14 @@ public class ShadowContextWrapper extends ShadowContext {
     }
 
     /**
-     * Implements Android's {@code MockPackageManager} with an anonymous inner class.
+     * Implements Android's {@code PackageManager}.
      *
-     * @return a {@code MockPackageManager}
+     * @return a {@code RobolectricPackageManager}
      */
     @Implementation
     public PackageManager getPackageManager() {
         if (packageManager == null) {
-            packageManager = new MockPackageManager() {
-                public PackageInfo packageInfo;
-                public ArrayList<PackageInfo> packageList;
-
-                @Override
-                public PackageInfo getPackageInfo(String packageName, int flags) throws NameNotFoundException {
-                    ensurePackageInfo();
-                    return packageInfo;
-                }
-
-                @Override
-                public List<PackageInfo> getInstalledPackages(int flags) {
-                    ensurePackageInfo();
-                    if (packageList == null) {
-                        packageList = new ArrayList<PackageInfo>();
-                        packageList.add(packageInfo);
-                    }
-                    return packageList;
-                }
-
-                private void ensurePackageInfo() {
-                    if (packageInfo == null) {
-                        packageInfo = new PackageInfo();
-                        packageInfo.packageName = packageName;
-                        packageInfo.versionName = "1.0";
-                    }
-                }
-
-            };
+            packageManager = new RobolectricPackageManager(realContextWrapper);
         }
         return packageManager;
     }
@@ -195,4 +168,5 @@ public class ShadowContextWrapper extends ShadowContext {
     private ShadowApplication getShadowApplication() {
         return ((ShadowApplication) shadowOf(getApplicationContext()));
     }
+
 }

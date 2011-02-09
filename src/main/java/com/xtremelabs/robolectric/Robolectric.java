@@ -1,10 +1,13 @@
 package com.xtremelabs.robolectric;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.appwidget.AppWidgetManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -13,6 +16,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteCursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -31,6 +35,7 @@ import android.hardware.Camera;
 import android.location.Geocoder;
 import android.location.LocationManager;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -42,6 +47,7 @@ import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
@@ -51,113 +57,17 @@ import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.ItemizedOverlay;
-import com.google.android.maps.MapController;
-import com.google.android.maps.MapView;
 import com.xtremelabs.robolectric.bytecode.RobolectricInternals;
 import com.xtremelabs.robolectric.bytecode.ShadowWrangler;
-import com.xtremelabs.robolectric.internal.Implements;
-import com.xtremelabs.robolectric.shadows.FakeHttpLayer;
-import com.xtremelabs.robolectric.shadows.ShadowAbsSpinner;
-import com.xtremelabs.robolectric.shadows.ShadowAbsoluteLayout;
-import com.xtremelabs.robolectric.shadows.ShadowAbstractCursor;
-import com.xtremelabs.robolectric.shadows.ShadowActivity;
-import com.xtremelabs.robolectric.shadows.ShadowAdapterView;
-import com.xtremelabs.robolectric.shadows.ShadowAddress;
-import com.xtremelabs.robolectric.shadows.ShadowAlertDialog;
-import com.xtremelabs.robolectric.shadows.ShadowAppWidgetManager;
-import com.xtremelabs.robolectric.shadows.ShadowApplication;
-import com.xtremelabs.robolectric.shadows.ShadowArrayAdapter;
-import com.xtremelabs.robolectric.shadows.ShadowAssetManager;
-import com.xtremelabs.robolectric.shadows.ShadowAsyncTask;
-import com.xtremelabs.robolectric.shadows.ShadowAudioManager;
-import com.xtremelabs.robolectric.shadows.ShadowBaseAdapter;
-import com.xtremelabs.robolectric.shadows.ShadowBitmap;
-import com.xtremelabs.robolectric.shadows.ShadowBitmapDrawable;
-import com.xtremelabs.robolectric.shadows.ShadowBitmapFactory;
-import com.xtremelabs.robolectric.shadows.ShadowBluetoothAdapter;
-import com.xtremelabs.robolectric.shadows.ShadowBluetoothDevice;
-import com.xtremelabs.robolectric.shadows.ShadowBundle;
-import com.xtremelabs.robolectric.shadows.ShadowCamera;
-import com.xtremelabs.robolectric.shadows.ShadowCameraParameters;
-import com.xtremelabs.robolectric.shadows.ShadowCanvas;
-import com.xtremelabs.robolectric.shadows.ShadowColorMatrix;
-import com.xtremelabs.robolectric.shadows.ShadowColorMatrixColorFilter;
-import com.xtremelabs.robolectric.shadows.ShadowComponentName;
-import com.xtremelabs.robolectric.shadows.ShadowCompoundButton;
-import com.xtremelabs.robolectric.shadows.ShadowConnectivityManager;
-import com.xtremelabs.robolectric.shadows.ShadowContentResolver;
-import com.xtremelabs.robolectric.shadows.ShadowContentValues;
-import com.xtremelabs.robolectric.shadows.ShadowContext;
-import com.xtremelabs.robolectric.shadows.ShadowContextThemeWrapper;
-import com.xtremelabs.robolectric.shadows.ShadowContextWrapper;
-import com.xtremelabs.robolectric.shadows.ShadowDefaultRequestDirector;
-import com.xtremelabs.robolectric.shadows.ShadowDialog;
-import com.xtremelabs.robolectric.shadows.ShadowDisplay;
-import com.xtremelabs.robolectric.shadows.ShadowDrawable;
-import com.xtremelabs.robolectric.shadows.ShadowEditText;
-import com.xtremelabs.robolectric.shadows.ShadowExpandableListView;
-import com.xtremelabs.robolectric.shadows.ShadowFloatMath;
-import com.xtremelabs.robolectric.shadows.ShadowGeoPoint;
-import com.xtremelabs.robolectric.shadows.ShadowGeocoder;
-import com.xtremelabs.robolectric.shadows.ShadowHandler;
-import com.xtremelabs.robolectric.shadows.ShadowImageView;
-import com.xtremelabs.robolectric.shadows.ShadowIntent;
-import com.xtremelabs.robolectric.shadows.ShadowIntentFilter;
-import com.xtremelabs.robolectric.shadows.ShadowItemizedOverlay;
-import com.xtremelabs.robolectric.shadows.ShadowLayoutInflater;
-import com.xtremelabs.robolectric.shadows.ShadowLayoutParams;
-import com.xtremelabs.robolectric.shadows.ShadowListActivity;
-import com.xtremelabs.robolectric.shadows.ShadowListView;
-import com.xtremelabs.robolectric.shadows.ShadowLocation;
-import com.xtremelabs.robolectric.shadows.ShadowLocationManager;
-import com.xtremelabs.robolectric.shadows.ShadowLooper;
-import com.xtremelabs.robolectric.shadows.ShadowMapActivity;
-import com.xtremelabs.robolectric.shadows.ShadowMapController;
-import com.xtremelabs.robolectric.shadows.ShadowMapView;
-import com.xtremelabs.robolectric.shadows.ShadowMatrix;
-import com.xtremelabs.robolectric.shadows.ShadowMediaRecorder;
-import com.xtremelabs.robolectric.shadows.ShadowMediaStore;
-import com.xtremelabs.robolectric.shadows.ShadowMenuInflater;
-import com.xtremelabs.robolectric.shadows.ShadowMotionEvent;
-import com.xtremelabs.robolectric.shadows.ShadowNetworkInfo;
-import com.xtremelabs.robolectric.shadows.ShadowOverlayItem;
-import com.xtremelabs.robolectric.shadows.ShadowPaint;
-import com.xtremelabs.robolectric.shadows.ShadowPath;
-import com.xtremelabs.robolectric.shadows.ShadowPendingIntent;
-import com.xtremelabs.robolectric.shadows.ShadowPoint;
-import com.xtremelabs.robolectric.shadows.ShadowPointF;
-import com.xtremelabs.robolectric.shadows.ShadowPreferenceManager;
-import com.xtremelabs.robolectric.shadows.ShadowRect;
-import com.xtremelabs.robolectric.shadows.ShadowRemoteViews;
-import com.xtremelabs.robolectric.shadows.ShadowResources;
-import com.xtremelabs.robolectric.shadows.ShadowSQLiteCursor;
-import com.xtremelabs.robolectric.shadows.ShadowSQLiteDatabase;
-import com.xtremelabs.robolectric.shadows.ShadowSQLiteOpenHelper;
-import com.xtremelabs.robolectric.shadows.ShadowSQLiteQueryBuilder;
-import com.xtremelabs.robolectric.shadows.ShadowService;
-import com.xtremelabs.robolectric.shadows.ShadowSettings;
-import com.xtremelabs.robolectric.shadows.ShadowSpannableStringBuilder;
-import com.xtremelabs.robolectric.shadows.ShadowSurfaceView;
-import com.xtremelabs.robolectric.shadows.ShadowTextUtils;
-import com.xtremelabs.robolectric.shadows.ShadowTextView;
-import com.xtremelabs.robolectric.shadows.ShadowToast;
-import com.xtremelabs.robolectric.shadows.ShadowTypedValue;
-import com.xtremelabs.robolectric.shadows.ShadowURLSpan;
-import com.xtremelabs.robolectric.shadows.ShadowView;
-import com.xtremelabs.robolectric.shadows.ShadowViewGroup;
-import com.xtremelabs.robolectric.shadows.ShadowWebView;
-import com.xtremelabs.robolectric.shadows.ShadowWifiManager;
-import com.xtremelabs.robolectric.shadows.ShadowZoomButtonsController;
-import com.xtremelabs.robolectric.util.HttpRequestInfo;
+import com.xtremelabs.robolectric.shadows.*;
+import com.xtremelabs.robolectric.tester.org.apache.http.FakeHttpLayer;
+import com.xtremelabs.robolectric.tester.org.apache.http.HttpRequestInfo;
+import com.xtremelabs.robolectric.tester.org.apache.http.RequestMatcher;
 import com.xtremelabs.robolectric.util.Scheduler;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.client.DefaultRequestDirector;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -166,33 +76,22 @@ public class Robolectric {
     public static Application application;
 
     public static <T> T newInstanceOf(Class<T> clazz) {
+        return RobolectricInternals.newInstanceOf(clazz);
+    }
+
+    public static Object newInstanceOf(String className) {
         try {
-            Constructor<T> defaultConstructor = clazz.getDeclaredConstructor();
-            defaultConstructor.setAccessible(true);
-            return defaultConstructor.newInstance();
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
+            Class<?> clazz = Class.forName(className);
+            if (clazz != null) {
+                return newInstanceOf(clazz);
+            }
+        } catch (ClassNotFoundException e) {
         }
+        return null;
     }
 
     public static void bindShadowClass(Class<?> shadowClass) {
-        Implements realClass = shadowClass.getAnnotation(Implements.class);
-        if (realClass == null) {
-            throw new IllegalArgumentException(shadowClass + " is not annotated with @Implements");
-        }
-
-        try {
-            ShadowWrangler.getInstance().bindShadowClass(realClass.value(), shadowClass);
-        } catch (TypeNotPresentException ignored) {
-            //this allows users of the robolectric.jar file to use the non-Google APIs version of the api
-            System.out.println("Warning: an error occurred while binding shadow class: " + shadowClass.getSimpleName());
-        }
+        RobolectricInternals.bindShadowClass(shadowClass);
     }
 
     public static void bindDefaultShadowClasses() {
@@ -223,6 +122,7 @@ public class Robolectric {
                 ShadowActivity.class,
                 ShadowAdapterView.class,
                 ShadowAddress.class,
+                ShadowAlarmManager.class,
                 ShadowAlertDialog.class,
                 ShadowAlertDialog.ShadowBuilder.class,
                 ShadowApplication.class,
@@ -240,17 +140,21 @@ public class Robolectric {
                 ShadowBundle.class,
                 ShadowCamera.class,
                 ShadowCameraParameters.class,
+                ShadowCameraSize.class,
                 ShadowCanvas.class,
                 ShadowColorMatrix.class,
                 ShadowColorMatrixColorFilter.class,
-                ShadowCompoundButton.class,
+                ShadowColorStateList.class,
                 ShadowComponentName.class,
+                ShadowCompoundButton.class,
+                ShadowConfiguration.class,
                 ShadowConnectivityManager.class,
                 ShadowContentResolver.class,
                 ShadowContentValues.class,
                 ShadowContext.class,
                 ShadowContextWrapper.class,
                 ShadowContextThemeWrapper.class,
+                ShadowCookieManager.class,
                 ShadowDefaultRequestDirector.class,
                 ShadowDisplay.class,
                 ShadowDrawable.class,
@@ -276,10 +180,13 @@ public class Robolectric {
                 ShadowMapActivity.class,
                 ShadowMapView.class,
                 ShadowMatrix.class,
+                ShadowMediaPlayer.class,
                 ShadowMediaRecorder.class,
                 ShadowMediaStore.ShadowImages.ShadowMedia.class,
                 ShadowMenuInflater.class,
                 ShadowMotionEvent.class,
+                ShadowNotification.class,
+                ShadowNotificationManager.class,
                 ShadowNetworkInfo.class,
                 ShadowOverlayItem.class,
                 ShadowPaint.class,
@@ -287,10 +194,12 @@ public class Robolectric {
                 ShadowPendingIntent.class,
                 ShadowPoint.class,
                 ShadowPointF.class,
+                ShadowPowerManager.class,
                 ShadowPreferenceManager.class,
                 ShadowRect.class,
                 ShadowRemoteViews.class,
                 ShadowResources.class,
+                ShadowResources.ShadowTheme.class,
                 ShadowService.class,
                 ShadowSettings.class,
                 ShadowSettings.ShadowSecure.class,
@@ -304,12 +213,16 @@ public class Robolectric {
                 ShadowTextUtils.class,
                 ShadowTextView.class,
                 ShadowToast.class,
+                ShadowTypedArray.class,
                 ShadowTypedValue.class,
                 ShadowURLSpan.class,
                 ShadowView.class,
                 ShadowViewGroup.class,
+                ShadowViewStub.class,
+                ShadowWebSettings.class,
                 ShadowWebView.class,
                 ShadowWifiManager.class,
+                ShadowWindow.class,
                 ShadowZoomButtonsController.class
         );
     }
@@ -348,28 +261,12 @@ public class Robolectric {
         return (ShadowZoomButtonsController) shadowOf_(instance);
     }
 
-    public static ShadowGeoPoint shadowOf(GeoPoint instance) {
-        return (ShadowGeoPoint) shadowOf_(instance);
-    }
-
-    public static ShadowMapView shadowOf(MapView instance) {
-        return (ShadowMapView) shadowOf_(instance);
-    }
-
-    public static ShadowMapController shadowOf(MapController instance) {
-        return (ShadowMapController) shadowOf_(instance);
-    }
-
-    public static ShadowItemizedOverlay shadowOf(ItemizedOverlay instance) {
-        return (ShadowItemizedOverlay) shadowOf_(instance);
-    }
-
     public static ShadowListView shadowOf(ListView instance) {
         return (ShadowListView) shadowOf_(instance);
     }
 
-    public static ExpandableListView shadowOf(ExpandableListView instance) {
-        return (ExpandableListView) shadowOf_(instance);
+    public static ShadowExpandableListView shadowOf(ExpandableListView instance) {
+        return (ShadowExpandableListView) shadowOf_(instance);
     }
 
     public static ShadowActivity shadowOf(Activity instance) {
@@ -422,6 +319,10 @@ public class Robolectric {
 
     public static ShadowViewGroup shadowOf(ViewGroup instance) {
         return (ShadowViewGroup) shadowOf_(instance);
+    }
+
+    public static ShadowWebSettings shadowOf(WebSettings instance) {
+        return (ShadowWebSettings) shadowOf_(instance);
     }
 
     public static ShadowWebView shadowOf(WebView instance) {
@@ -524,12 +425,28 @@ public class Robolectric {
         return (ShadowCameraParameters) shadowOf_(instance);
     }
 
+    public static ShadowCameraSize shadowOf(Camera.Size instance) {
+        return (ShadowCameraSize) shadowOf_(instance);
+    }
+
+    public static ShadowMediaPlayer shadowOf(MediaPlayer instance) {
+        return (ShadowMediaPlayer) shadowOf_(instance);
+    }
+
     public static ShadowMediaRecorder shadowOf(MediaRecorder instance) {
         return (ShadowMediaRecorder) shadowOf_(instance);
     }
 
     public static ShadowAssetManager shadowOf(AssetManager instance) {
         return (ShadowAssetManager) Robolectric.shadowOf_(instance);
+    }
+
+    public static ShadowAlarmManager shadowOf(AlarmManager instance) {
+        return (ShadowAlarmManager) Robolectric.shadowOf_(instance);
+    }
+
+    public static ShadowConfiguration shadowOf(Configuration instance) {
+        return (ShadowConfiguration) Robolectric.shadowOf_(instance);
     }
 
     public static ShadowBitmap shadowOf(Bitmap other) {
@@ -550,6 +467,14 @@ public class Robolectric {
 
     public static ShadowMotionEvent shadowOf(MotionEvent other) {
         return (ShadowMotionEvent) Robolectric.shadowOf_(other);
+    }
+
+    public static ShadowNotificationManager shadowOf(NotificationManager other) {
+        return (ShadowNotificationManager) Robolectric.shadowOf_(other);
+    }
+
+    public static ShadowNotification shadowOf(Notification other) {
+        return (ShadowNotification) Robolectric.shadowOf_(other);
     }
 
     @SuppressWarnings({"unchecked"})
@@ -654,7 +579,7 @@ public class Robolectric {
      * @param requestMatcher custom {@code RequestMatcher}.
      * @param response       response to return when a match is found.
      */
-    public static void addHttpResponseRule(FakeHttpLayer.RequestMatcher requestMatcher, HttpResponse response) {
+    public static void addHttpResponseRule(RequestMatcher requestMatcher, HttpResponse response) {
         getFakeHttpLayer().addHttpResponseRule(requestMatcher, response);
     }
 
@@ -662,11 +587,10 @@ public class Robolectric {
         return getShadowApplication().getFakeHttpLayer();
     }
 
-    /**
-     * Sets the default http response. This response will be returned if no other rules are matched.
-     *
-     * @param defaultHttpResponse the {@code HttpResponse} to return.
-     */
+    public static void setDefaultHttpResponse(int statusCode, String responseBody) {
+        getFakeHttpLayer().setDefaultHttpResponse(statusCode, responseBody);
+    }
+
     public static void setDefaultHttpResponse(HttpResponse defaultHttpResponse) {
         getFakeHttpLayer().setDefaultHttpResponse(defaultHttpResponse);
     }

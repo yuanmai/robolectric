@@ -50,6 +50,7 @@ public class ShadowView {
     protected boolean focusable;
     boolean focusableInTouchMode;
     private int backgroundResourceId = -1;
+    private int backgroundColor;
     protected View.OnKeyListener onKeyListener;
     private boolean isFocused;
     private View.OnFocusChangeListener onFocusChangeListener;
@@ -59,12 +60,23 @@ public class ShadowView {
     private boolean drawingCacheEnabled;
 
     public void __constructor__(Context context) {
-        this.context = context;
+        __constructor__(context, null);
     }
 
     public void __constructor__(Context context, AttributeSet attributeSet) {
+        __constructor__(context, attributeSet, 0);
+    }
+
+    public void __constructor__(Context context, AttributeSet attributeSet, int defStyle) {
+        this.context = context;
         this.attributeSet = attributeSet;
-        __constructor__(context);
+
+        if (attributeSet != null) {
+            applyAttributes();
+        }
+    }
+
+    public void applyAttributes() {
         applyIdAttribute();
         applyVisibilityAttribute();
         applyEnabledAttribute();
@@ -132,7 +144,7 @@ public class ShadowView {
      */
     @Implementation
     public static View inflate(Context context, int resource, ViewGroup root) {
-       return ShadowLayoutInflater.from(context).inflate(resource, root);
+        return ShadowLayoutInflater.from(context).inflate(resource, root);
     }
 
     /**
@@ -370,7 +382,7 @@ public class ShadowView {
 
     /**
      * Returns a string representation of this {@code View}. Unless overridden, it will be an empty string.
-     *
+     * <p/>
      * Robolectric extension.
      */
     public String innerText() {
@@ -452,6 +464,15 @@ public class ShadowView {
      */
     public int getBackgroundResourceId() {
         return backgroundResourceId;
+    }
+
+    @Implementation
+    public void setBackgroundColor(int color) {
+        backgroundColor = color;
+    }
+
+    public int getBackgroundColor() {
+        return backgroundColor;
     }
 
     /**
@@ -598,12 +619,12 @@ public class ShadowView {
     }
 
     private void applyBackgroundAttribute() {
-    	String source = attributeSet.getAttributeValue("android", "background");
-    	if (source != null) {
-    		if (source.startsWith("@drawable/")) {
-    			setBackgroundResource(attributeSet.getAttributeResourceValue("android", "background", 0));    			
-    		}
-    	}
+        String source = attributeSet.getAttributeValue("android", "background");
+        if (source != null) {
+            if (source.startsWith("@drawable/")) {
+                setBackgroundResource(attributeSet.getAttributeResourceValue("android", "background", 0));
+            }
+        }
     }
 
     private boolean noParentHasFocus(View view) {
@@ -627,5 +648,15 @@ public class ShadowView {
     @Implementation
     public Bitmap getDrawingCache() {
         return Robolectric.newInstanceOf(Bitmap.class);
+    }
+
+    @Implementation
+    public void post(Runnable action) {
+        Robolectric.getUiThreadScheduler().post(action);
+    }
+
+    @Implementation
+    public void postDelayed(Runnable action, long delayMills) {
+        Robolectric.getUiThreadScheduler().postDelayed(action, delayMills);
     }
 }

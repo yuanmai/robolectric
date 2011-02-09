@@ -11,11 +11,13 @@ import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 import com.xtremelabs.robolectric.internal.RealObject;
-import com.xtremelabs.robolectric.view.TestWindow;
+import com.xtremelabs.robolectric.tester.android.view.TestWindow;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
@@ -34,6 +36,8 @@ public class ShadowActivity extends ShadowContextWrapper {
     private Activity parent;
     private boolean finishWasCalled;
     private TestWindow window;
+
+    private List<IntentForResult> startedActivitiesForResults = new ArrayList<IntentForResult>();
 
     private Map<Intent, Integer> intentRequestCodeMap = new HashMap<Intent, Integer>();
 
@@ -109,7 +113,8 @@ public class ShadowActivity extends ShadowContextWrapper {
         if (contentView != null) {
             return contentView.findViewById(id);
         } else {
-            throw new RuntimeException("you should have called setContentView() first");
+            System.out.println("WARNING: you probably should have called setContentView() first");
+            return null;
         }
     }
 
@@ -132,7 +137,7 @@ public class ShadowActivity extends ShadowContextWrapper {
     }
 
     /**
-     * Constructs a new Window (a {@link com.xtremelabs.robolectric.view.TestWindow}) if no window has previously been
+     * Constructs a new Window (a {@link com.xtremelabs.robolectric.tester.android.view.TestWindow}) if no window has previously been
      * set.
      *
      * @return the window associated with this Activity
@@ -168,7 +173,7 @@ public class ShadowActivity extends ShadowContextWrapper {
      * @see ShadowApplication#assertNoBroadcastListenersRegistered(android.content.Context, String)
      */
     public void assertNoBroadcastListenersRegistered() {
-        ((ShadowApplication) shadowOf(getApplicationContext())).assertNoBroadcastListenersRegistered(realActivity, "Activity");
+        shadowOf(getApplicationContext()).assertNoBroadcastListenersRegistered(realActivity, "Activity");
     }
 
     /**
@@ -198,9 +203,56 @@ public class ShadowActivity extends ShadowContextWrapper {
         return resultIntent;
     }
 
+    /**
+     * Non-Android accessor consumes and returns the next {@code Intent} on the
+     * started activities for results stack.
+     *
+     * @return the next started {@code Intent} for an activity, wrapped in
+     *         an {@link ShadowActivity.IntentForResult} object
+     */
+    public IntentForResult getNextStartedActivityForResult() {
+        if (startedActivitiesForResults.isEmpty()) {
+            return null;
+        } else {
+            return startedActivitiesForResults.remove(0);
+        }
+    }
+
+    /**
+     * Non-Android accessor returns the most recent {@code Intent} started by
+     * {@link #startActivityForResult(android.content.Intent, int)} without
+     * consuming it.
+     *
+     * @return the most recently started {@code Intent}, wrapped in
+     *         an {@link ShadowActivity.IntentForResult} object
+     */
+    public IntentForResult peekNextStartedActivityForResult() {
+        if (startedActivitiesForResults.isEmpty()) {
+            return null;
+        } else {
+            return startedActivitiesForResults.get(0);
+        }
+    }
+
+    /**
+     * Container object to hold an Intent, together with the requestCode used
+     * in a call to {@code Activity#startActivityForResult(Intent, int)}
+     */
+    public class IntentForResult {
+        public Intent intent;
+        public int requestCode;
+
+        public IntentForResult(Intent intent, int requestCode) {
+            this.intent = intent;
+            this.requestCode = requestCode;
+        }
+    }
+
     @Implementation
     public void startActivityForResult(Intent intent, int requestCode) {
         intentRequestCodeMap.put(intent, requestCode);
+        startedActivitiesForResults.add(new IntentForResult(intent, requestCode));
+        getApplicationContext().startActivity(intent);
     }
 
     public void receiveResult(Intent requestIntent, int resultCode, Intent resultIntent) {

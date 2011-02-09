@@ -6,7 +6,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import static com.xtremelabs.robolectric.util.TestUtil.resourceFile;
 import static org.junit.Assert.assertEquals;
@@ -18,7 +24,7 @@ public class RawResourceLoaderTest {
 
     @Before public void setUp() throws Exception {
         ResourceExtractor resourceExtractor = new ResourceExtractor();
-        resourceExtractor.addRClass(R.class);
+        resourceExtractor.addLocalRClass(R.class);
         rawResourceLoader = new RawResourceLoader(resourceExtractor, resourceFile("res"));
     }
 

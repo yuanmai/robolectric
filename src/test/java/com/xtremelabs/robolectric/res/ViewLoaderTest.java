@@ -18,14 +18,12 @@ import com.xtremelabs.robolectric.WithTestDefaultsRunner;
 import com.xtremelabs.robolectric.shadows.ShadowImageView;
 import com.xtremelabs.robolectric.shadows.ShadowTextView;
 import com.xtremelabs.robolectric.util.CustomView;
+import com.xtremelabs.robolectric.util.CustomView2;
 import com.xtremelabs.robolectric.util.TestUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
-import static android.test.MoreAsserts.assertNotEqual;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 import static com.xtremelabs.robolectric.util.TestUtil.assertInstanceOf;
 import static com.xtremelabs.robolectric.util.TestUtil.resourceFile;
@@ -43,7 +41,7 @@ public class ViewLoaderTest {
         Robolectric.bindDefaultShadowClasses();
 
         ResourceExtractor resourceExtractor = new ResourceExtractor();
-        resourceExtractor.addRClass(R.class);
+        resourceExtractor.addLocalRClass(R.class);
         StringResourceLoader stringResourceLoader = new StringResourceLoader(resourceExtractor);
         new DocumentLoader(stringResourceLoader).loadResourceXmlDir(resourceFile("res", "values"));
         viewLoader = new ViewLoader(resourceExtractor, new AttrResourceLoader(resourceExtractor));
@@ -66,14 +64,14 @@ public class ViewLoaderTest {
         WebView webView = (WebView) view.findViewById(R.id.web_view);
 
         webView.loadUrl("www.example.com");
-        
+
         assertThat(shadowOf(webView).getLastLoadedUrl(), equalTo("www.example.com"));
     }
 
     @Test
     public void testAddsChildren() throws Exception {
         ViewGroup view = (ViewGroup) viewLoader.inflateView(context, "layout/media");
-        assertNotEqual(0, view.getChildCount());
+        assertTrue(view.getChildCount() > 0);
 
         assertSame(context, view.getChildAt(0).getContext());
     }
@@ -123,6 +121,7 @@ public class ViewLoaderTest {
         assertInstanceOf(LinearLayout.class, overrideIncludeView.findViewById(R.id.outer_merge));
         assertInstanceOf(TextView.class, overrideIncludeView.findViewById(R.id.inner_text));
         assertNull(overrideIncludeView.findViewById(R.id.include_id));
+        assertEquals(1, overrideIncludeView.getChildCount());
     }
 
     @Test
@@ -240,5 +239,19 @@ public class ViewLoaderTest {
         ShadowImageView shadowImageView = Robolectric.shadowOf(imageView);
 
         assertThat(shadowImageView.getBackgroundResourceId(), equalTo(R.drawable.image_background));
+    }
+    
+    @Test
+    public void shouldInvokeOnFinishInflate() throws Exception {
+        CustomView2 outerCustomView = (CustomView2) viewLoader.inflateView(context, "layout/custom_layout2");
+        CustomView2 innerCustomView = (CustomView2) outerCustomView.getChildAt(0);
+        assertThat(outerCustomView.childCountAfterInflate, equalTo(1));
+        assertThat(innerCustomView.childCountAfterInflate, equalTo(3));
+    }
+
+    @Test
+    public void testIncludesLinearLayoutsOnlyOnce() throws Exception {
+        ViewGroup parentView = (ViewGroup) viewLoader.inflateView(context, "layout/included_layout_parent");
+        assertEquals(1, parentView.getChildCount());
     }
 }

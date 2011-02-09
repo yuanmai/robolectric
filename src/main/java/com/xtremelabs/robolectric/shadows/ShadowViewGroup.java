@@ -37,8 +37,42 @@ public class ShadowViewGroup extends ShadowView {
 
     @Implementation
     public void addView(View child) {
-        children.add(child);
+        ((ViewGroup)realView).addView(child, -1);
+    }
+
+    @Implementation
+    public void addView(View child, int index) {
+        if (index == -1) {
+            children.add(child);
+        } else {
+            children.add(index, child);
+        }
         shadowOf(child).parent = this;
+    }
+    @Implementation
+    public void addView(View child, int width, int height) {
+        ((ViewGroup)realView).addView(child, -1);
+    }
+
+    @Implementation
+    public void addView(View child, ViewGroup.LayoutParams params) {
+        ((ViewGroup)realView).addView(child, -1);
+    }
+
+    @Implementation
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        ((ViewGroup)realView).addView(child, index);
+    }
+
+    @Implementation
+    public int indexOfChild(View child) {
+        int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            if (children.get(i) == child) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Implementation
@@ -90,7 +124,7 @@ public class ShadowViewGroup extends ShadowView {
     /**
      * Returns a string representation of this {@code ViewGroup} by concatenating all of the strings contained in all
      * of the descendants of this {@code ViewGroup}.
-     *
+     * <p/>
      * Robolectric extension.
      */
     @Override
