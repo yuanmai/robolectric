@@ -7,8 +7,6 @@ import android.graphics.Paint;
 import com.xtremelabs.robolectric.internal.Implementation;
 import com.xtremelabs.robolectric.internal.Implements;
 
-import java.util.List;
-
 import static com.xtremelabs.robolectric.Robolectric.newInstanceOf;
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
@@ -100,7 +98,7 @@ public class ShadowCanvas {
 //        }
 //    }
 
-    public List<ShadowBitmap.DrawEvent> getDrawEvents() {
+    public ShadowBitmap.DrawEvents getDrawEvents() {
         return shadowOf(targetBitmap).getDrawEvents();
     }
 

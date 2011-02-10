@@ -13,8 +13,6 @@ import com.xtremelabs.robolectric.internal.RealObject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import static com.xtremelabs.robolectric.Robolectric.shadowOf;
 
@@ -28,7 +26,7 @@ public class ShadowBitmap {
     private int height;
     private String originalDescription = "Empty bitmap";
     private int loadedFromResourceId = -1;
-    private List<DrawEvent> drawEvents = new ArrayList<DrawEvent>();
+    private DrawEvents drawEvents = new DrawEvents();
 
     @Implementation
     public boolean compress(Bitmap.CompressFormat format, int quality, OutputStream stream) {
@@ -112,12 +110,12 @@ public class ShadowBitmap {
         return height;
     }
 
-    public void scale(float sx, float sy){
-        setHeight((int) (getHeight()*sx));
-        setWidth((int) (getWidth()*sy));
+    public void scale(float sx, float sy) {
+        setHeight((int) (getHeight() * sx));
+        setWidth((int) (getWidth() * sy));
         appendDrawEvent(new ShadowBitmap.DrawEvent("scale", "by: " + sx + " x " + sy));
     }
-    
+
     @Override
     @Implementation
     public boolean equals(Object o) {
@@ -128,7 +126,8 @@ public class ShadowBitmap {
 
         if (height != that.height) return false;
         if (width != that.width) return false;
-        if (originalDescription != null ? !originalDescription.equals(that.originalDescription) : that.originalDescription != null) return false;
+        if (originalDescription != null ? !originalDescription.equals(that.originalDescription) : that.originalDescription != null)
+            return false;
 
         return true;
     }
@@ -152,8 +151,8 @@ public class ShadowBitmap {
                 '}';
     }
 
-    public List<DrawEvent> getDrawEvents() {
-        return Collections.unmodifiableList(drawEvents);
+    public DrawEvents getDrawEvents() {
+        return drawEvents;
     }
 
     public void appendDrawEvent(DrawEvent drawEvent) {
@@ -184,6 +183,12 @@ public class ShadowBitmap {
             }
         }
         return description;
+    }
+
+    public class DrawEvents extends ArrayList<DrawEvent> {
+        public DrawEventQuery createdFrom(String expectedDescription) {
+            return new DefaultQuery(originalDescription.equals(expectedDescription));
+        }
     }
 
     public static class DrawEvent {
@@ -235,6 +240,107 @@ public class ShadowBitmap {
 
         public String getMatrixDescription() {
             return matrix == null ? "" : matrix.getDescription();
+        }
+    }
+
+    public abstract class DrawEventQuery {
+        DrawEventQuery parent;
+
+        public DrawEventQuery(DrawEventQuery parent) {
+            this.parent = parent;
+        }
+
+        public boolean isTrue() {
+            for (DrawEvent drawEvent : drawEvents) {
+                if (internalIsTrueFor(drawEvent)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean internalIsTrueFor(DrawEvent drawEvent) {
+            return (parent == null || parent.internalIsTrueFor(drawEvent)) && isTrueFor(drawEvent);
+        }
+
+        protected abstract boolean isTrueFor(DrawEvent drawEvent);
+
+        public DrawEventQuery has(String command) {
+            return new HasQuery(this, command);
+        }
+
+        public DrawEventQuery with(String description) {
+            return new WithQuery(this, description);
+        }
+
+        public DrawEventQuery withBitmap() {
+            return new WithBitmapQuery(this);
+        }
+
+        public DrawEventQuery createdFrom(String bitmapName) {
+            return new CreatedFromQuery(this, bitmapName);
+        }
+    }
+
+    public class HasQuery extends DrawEventQuery {
+        String command;
+
+        public HasQuery(DrawEventQuery parent, String command) {
+            super(parent);
+            this.command = command;
+        }
+
+        @Override protected boolean isTrueFor(DrawEvent drawEvent) {
+            return drawEvent.getCommand().equals(command);
+        }
+    }
+
+    public class WithQuery extends DrawEventQuery {
+        String description;
+
+        public WithQuery(DrawEventQuery parent, String description) {
+            super(parent);
+            this.description = description;
+        }
+
+        @Override protected boolean isTrueFor(DrawEvent drawEvent) {
+            return drawEvent.getDescription().equals(description);
+        }
+    }
+
+    public class WithBitmapQuery extends DrawEventQuery {
+        public WithBitmapQuery(DrawEventQuery parent) {
+            super(parent);
+        }
+
+        @Override protected boolean isTrueFor(DrawEvent drawEvent) {
+            return drawEvent.getBitmap() != null;
+        }
+    }
+
+    public class CreatedFromQuery extends DrawEventQuery {
+        String bitmapName;
+
+        public CreatedFromQuery(DrawEventQuery parent, String bitmapName) {
+            super(parent);
+            this.bitmapName = bitmapName;
+        }
+
+        @Override protected boolean isTrueFor(DrawEvent drawEvent) {
+            return drawEvent.getBitmap() != null && drawEvent.getBitmap().getOriginalDescription().equals(bitmapName);
+        }
+    }
+
+    public class DefaultQuery extends DrawEventQuery {
+        boolean isTrue;
+
+        public DefaultQuery(boolean isTrue) {
+            super(null);
+            this.isTrue = isTrue;
+        }
+
+        @Override protected boolean isTrueFor(DrawEvent drawEvent) {
+            return isTrue;
         }
     }
 }

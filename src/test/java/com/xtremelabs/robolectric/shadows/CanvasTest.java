@@ -21,6 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(WithTestDefaultsRunner.class)
@@ -132,6 +133,46 @@ public class CanvasTest {
         assertTrue(shadowOf(bitmap1).getDescription().startsWith("Bitmap One"));
         assertTrue(shadowOf(bitmap1).getDescription().contains("with bitmap:"));
         assertTrue(shadowOf(bitmap1).getDescription().endsWith("Bitmap Two"));
+    }
+
+    @Test
+    public void shouldReceiveEventsWhenDrawingToCanvas() throws Exception {
+        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap1).setOriginalDescription("Bitmap One");
+
+        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap2).setOriginalDescription("Bitmap Two");
+
+        Canvas canvas = new Canvas(bitmap1);
+        canvas.drawBitmap(bitmap2, 0, 0, null);
+
+        assertTrue(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap One").isTrue());
+        assertFalse(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap Two").isTrue());
+        assertTrue(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap One").has("drawBitmap").isTrue());
+        assertTrue(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap One").has("drawBitmap").with("left: 0.0, top: 0.0").isTrue());
+        assertTrue(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap One").has("drawBitmap").withBitmap().isTrue());
+//        ShadowBitmap.DrawEventQuery query = shadowOf(bitmap1).getDrawEvents().has(bitmap2).with("drawBitmap").followedBy();
+//        query.hasMatrix();
+//        query.hasBitmap().createdFrom("Bitmap One");
+    }
+
+    @Test
+    public void queries_shouldAllApplyToTheSameEvent() throws Exception {
+        Bitmap bitmap1 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap1).setOriginalDescription("Bitmap One");
+
+        Bitmap bitmap2 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap2).setOriginalDescription("Bitmap Two");
+
+        Bitmap bitmap3 = Robolectric.newInstanceOf(Bitmap.class);
+        shadowOf(bitmap3).setOriginalDescription("Bitmap Three");
+
+        Canvas canvas = new Canvas(bitmap1);
+        canvas.drawBitmap(bitmap2, 0, 0, null);
+        canvas.drawBitmap(bitmap3, 1, 1, null);
+
+        assertTrue(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap One").has("drawBitmap").with("left: 0.0, top: 0.0").withBitmap().createdFrom("Bitmap Two").isTrue());
+        assertFalse(shadowOf(bitmap1).getDrawEvents().createdFrom("Bitmap One").has("drawBitmap").with("left: 0.0, top: 0.0").withBitmap().createdFrom("Bitmap Three").isTrue());
     }
 
     @Test
