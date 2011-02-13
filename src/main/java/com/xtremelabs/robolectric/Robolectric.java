@@ -301,26 +301,26 @@ public class Robolectric {
     public static ShadowPath shadowOf(Path instance) {
         return (ShadowPath) shadowOf_(instance);
     }
-    
+
     public static ShadowPreference shadowOf(Preference instance) {
-		return (ShadowPreference) shadowOf_(instance);
-	}
+        return (ShadowPreference) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceActivity shadowOf(PreferenceActivity instance) {
-		return (ShadowPreferenceActivity) shadowOf_(instance);
-	}
+    public static ShadowPreferenceActivity shadowOf(PreferenceActivity instance) {
+        return (ShadowPreferenceActivity) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceCategory shadowOf(PreferenceCategory instance) {
-		return (ShadowPreferenceCategory) shadowOf_(instance);
-	}
+    public static ShadowPreferenceCategory shadowOf(PreferenceCategory instance) {
+        return (ShadowPreferenceCategory) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceGroup shadowOf(PreferenceGroup instance) {
-		return (ShadowPreferenceGroup) shadowOf_(instance);
-	}
+    public static ShadowPreferenceGroup shadowOf(PreferenceGroup instance) {
+        return (ShadowPreferenceGroup) shadowOf_(instance);
+    }
 
-	public static ShadowPreferenceScreen shadowOf(PreferenceScreen instance) {
-		return (ShadowPreferenceScreen) shadowOf_(instance);
-	}
+    public static ShadowPreferenceScreen shadowOf(PreferenceScreen instance) {
+        return (ShadowPreferenceScreen) shadowOf_(instance);
+    }
 
     public static ShadowListActivity shadowOf(ListActivity instance) {
         return (ShadowListActivity) shadowOf_(instance);

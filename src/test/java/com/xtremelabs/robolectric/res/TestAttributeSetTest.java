@@ -105,11 +105,11 @@ public class TestAttributeSetTest {
         TestAttributeSet testAttributeSet = new TestAttributeSet(attributes, null, attrResourceLoader, CustomView.class);
         assertThat(testAttributeSet.getAttributeIntValue("some namespace", "itemType", 0), equalTo(1));
     }
-    
+
     @Test
-	public void testPutAttributeInTestAttributeSet() throws Exception {
-		TestAttributeSet testAttributeSet = new TestAttributeSet(attributes, resourceExtractor, null, null);
-		testAttributeSet.put("android:title", "test");
-		assertThat(testAttributeSet.getAttributeValue("android", "title"), equalTo("test"));
-	}
+    public void testPutAttributeInTestAttributeSet() throws Exception {
+        TestAttributeSet testAttributeSet = new TestAttributeSet(attributes, resourceExtractor, null, null);
+        testAttributeSet.put("android:title", "test");
+        assertThat(testAttributeSet.getAttributeValue("android", "title"), equalTo("test"));
+    }
 }

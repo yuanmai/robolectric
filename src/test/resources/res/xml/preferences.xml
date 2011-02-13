@@ -1,19 +1,19 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-	<PreferenceCategory android:title="preference_category">
-		<ListPreference android:key="PREFERENCE_TEST_LISTPREFERENCE"
-	        android:title="listpreference_title"
-	        android:summary="listpreference_summary"
-	        android:entries="listpreference_entries" 
-	        android:entryValues="listpreference_values"
-	        android:dialogTitle="@string/preference_test_listpreference_dialog_title" />
-		<EditTextPreference android:key="PREFERENCE_TEST_EDITTEXTPREFERENCE"
-			android:title="edittextpreference_title"
-	        android:summary="edittextpreference_summary" />
-	</PreferenceCategory>
-	
-	<PreferenceScreen android:key="SIMPSONS_PREFERENCES">
-	    <CheckBoxPreference android:key="PREFERENCE_HOMER_SIMPSON"
-			android:title="@string/preference_homer_simpson" 
-			android:enabled="false"/>
-	</PreferenceScreen>
+    <PreferenceCategory android:title="preference_category">
+        <ListPreference android:key="PREFERENCE_TEST_LISTPREFERENCE"
+                        android:title="listpreference_title"
+                        android:summary="listpreference_summary"
+                        android:entries="listpreference_entries"
+                        android:entryValues="listpreference_values"
+                        android:dialogTitle="@string/preference_test_listpreference_dialog_title"/>
+        <EditTextPreference android:key="PREFERENCE_TEST_EDITTEXTPREFERENCE"
+                            android:title="edittextpreference_title"
+                            android:summary="edittextpreference_summary"/>
+    </PreferenceCategory>
+
+    <PreferenceScreen android:key="SIMPSONS_PREFERENCES">
+        <CheckBoxPreference android:key="PREFERENCE_HOMER_SIMPSON"
+                            android:title="@string/preference_homer_simpson"
+                            android:enabled="false"/>
+    </PreferenceScreen>
 </PreferenceScreen>

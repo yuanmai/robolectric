@@ -86,17 +86,17 @@ public final class R {
     }
 
     public static final class styleable {
-        public static final int[] TitleBar = { id.textStyle };
+        public static final int[] TitleBar = {id.textStyle};
         public static final int TitleBar_textStyle = 0;
 
-        public static final int[] HeaderBar = { id.textStyle2, id.textStyle3 };
+        public static final int[] HeaderBar = {id.textStyle2, id.textStyle3};
         public static final int HeaderBar_textStyle2 = 0;
         public static final int HeaderBar_textStyle3 = 1;
     }
-    
+
     public static final class xml {
-		public static final int preferences = nextId++;
-	}
+        public static final int preferences = nextId++;
+    }
 
     ;
 }

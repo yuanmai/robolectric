@@ -4,8 +4,8 @@ import android.preference.PreferenceActivity;
 
 public class TestPreferenceActivity extends PreferenceActivity {
 
-	public TestPreferenceActivity() {
-		super();
-	}
+    public TestPreferenceActivity() {
+        super();
+    }
 
 }

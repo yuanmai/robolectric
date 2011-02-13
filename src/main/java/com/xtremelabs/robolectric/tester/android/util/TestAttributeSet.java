@@ -1,7 +1,6 @@
 package com.xtremelabs.robolectric.tester.android.util;
 
 import android.util.AttributeSet;
-import android.view.View;
 import com.xtremelabs.robolectric.res.AttrResourceLoader;
 import com.xtremelabs.robolectric.res.ResourceExtractor;
 
@@ -91,13 +90,13 @@ public class TestAttributeSet<P> implements AttributeSet {
 
     @Override public int getAttributeResourceValue(String namespace, String attribute, int defaultValue) {
         String value = getAttributeValueInMap(attribute);
-		return (value != null) ? resourceExtractor.getResourceId(value) : defaultValue;
+        return (value != null) ? resourceExtractor.getResourceId(value) : defaultValue;
     }
 
     @Override public int getAttributeResourceValue(int resourceId, int defaultValue) {
         String attrName = resourceExtractor.getResourceName(resourceId);
         String value = getAttributeValueInMap(attrName);
-		return (value == null) ? defaultValue : resourceExtractor.getResourceId(value);
+        return (value == null) ? defaultValue : resourceExtractor.getResourceId(value);
     }
 
     @Override public int getAttributeIntValue(int index, int defaultValue) {
