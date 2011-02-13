@@ -40,6 +40,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceScreen;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -194,7 +199,12 @@ public class Robolectric {
                 ShadowPoint.class,
                 ShadowPointF.class,
                 ShadowPowerManager.class,
+                ShadowPreference.class,
+                ShadowPreferenceActivity.class,
+                ShadowPreferenceCategory.class,
+                ShadowPreferenceGroup.class,
                 ShadowPreferenceManager.class,
+                ShadowPreferenceScreen.class,
                 ShadowRect.class,
                 ShadowRemoteViews.class,
                 ShadowResources.class,
@@ -291,6 +301,26 @@ public class Robolectric {
     public static ShadowPath shadowOf(Path instance) {
         return (ShadowPath) shadowOf_(instance);
     }
+    
+    public static ShadowPreference shadowOf(Preference instance) {
+		return (ShadowPreference) shadowOf_(instance);
+	}
+
+	public static ShadowPreferenceActivity shadowOf(PreferenceActivity instance) {
+		return (ShadowPreferenceActivity) shadowOf_(instance);
+	}
+
+	public static ShadowPreferenceCategory shadowOf(PreferenceCategory instance) {
+		return (ShadowPreferenceCategory) shadowOf_(instance);
+	}
+
+	public static ShadowPreferenceGroup shadowOf(PreferenceGroup instance) {
+		return (ShadowPreferenceGroup) shadowOf_(instance);
+	}
+
+	public static ShadowPreferenceScreen shadowOf(PreferenceScreen instance) {
+		return (ShadowPreferenceScreen) shadowOf_(instance);
+	}
 
     public static ShadowListActivity shadowOf(ListActivity instance) {
         return (ShadowListActivity) shadowOf_(instance);

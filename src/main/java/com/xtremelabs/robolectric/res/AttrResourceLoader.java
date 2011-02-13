@@ -1,20 +1,20 @@
 package com.xtremelabs.robolectric.res;
 
-import android.view.View;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class AttrResourceLoader extends XmlLoader {
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+public class AttrResourceLoader<P> extends XmlLoader {
     Map<String, String> classAttrEnumToValue = new HashMap<String, String>();
     Set<String> knownClassAttrs = new HashSet<String>();
 
@@ -22,7 +22,8 @@ public class AttrResourceLoader extends XmlLoader {
         super(resourceExtractor);
     }
 
-    @Override protected void processResourceXml(File xmlFile, Document document, boolean ignored) throws Exception {
+    @Override
+    protected void processResourceXml(File xmlFile, Document document, boolean ignored) throws Exception {
         XPathExpression stringsXPath = XPathFactory.newInstance().newXPath().compile("/resources/declare-styleable/attr/enum");
         NodeList stringNodes = (NodeList) stringsXPath.evaluate(document, XPathConstants.NODESET);
         for (int i = 0; i < stringNodes.getLength(); i++) {
@@ -37,12 +38,12 @@ public class AttrResourceLoader extends XmlLoader {
         }
     }
 
-    public String convertValueToEnum(Class<? extends View> viewClass, String namespace, String attrName, String attrValue) {
+    public String convertValueToEnum(Class<? extends P> viewClass, String namespace, String attrName, String attrValue) {
         String className = findKnownAttrClass(attrName, viewClass).getName();
         return classAttrEnumToValue.get(key(className, attrName, attrValue));
     }
 
-    public boolean hasAttributeFor(Class<? extends View> viewClass, String namespace, String attrName) {
+    public boolean hasAttributeFor(Class<? extends P> viewClass, String namespace, String attrName) {
         return findKnownAttrClass(attrName, viewClass) != null;
     }
 
