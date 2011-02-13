@@ -243,8 +243,7 @@ public class ResourceLoader {
     }
 
     private String getAndroidResourceSubPath() {
-        // TODO: Use the targetSDKVersion from the Android Manifest instead of a hard-coded "9"
-        return "platforms/android-9/data/res";
+        return "platforms/android-" + sdkVersion + "/data/res";
     }
 
     static boolean isLayoutDirectory(String path) {
@@ -260,8 +259,8 @@ public class ResourceLoader {
     }
 
     /*
-      * For tests only...
-      */
+     * For tests only...
+     */
     protected ResourceLoader(StringResourceLoader stringResourceLoader) {
         resourceExtractor = new ResourceExtractor();
         this.stringResourceLoader = stringResourceLoader;
