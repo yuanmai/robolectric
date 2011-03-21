@@ -59,4 +59,20 @@ public class WebViewTest {
             assertThat(shadowWebView.getJavascriptInterface(name), sameInstance(obj));
         }
     }
+    
+    @Test
+    public void shouldStartPostRun() {
+    	WebView webView = new WebView(null);
+    	ShadowWebView shadowWebView = Robolectric.shadowOf(webView);
+    	
+    	Runnable testRun = new Runnable() {
+    		public void run() {
+    			//Do something...
+    			return;
+    		}
+    	};
+    	assertThat(shadowWebView.getRunFlag(), equalTo(false));
+    	shadowWebView.post(testRun);
+    	assertThat(shadowWebView.getRunFlag(), equalTo(true));
+    }
 }
