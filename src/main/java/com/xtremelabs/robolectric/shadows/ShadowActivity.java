@@ -59,6 +59,20 @@ public class ShadowActivity extends ShadowContextWrapper {
         }
     }
 
+    private static Method onCreateDialog;
+    private static Method onPrepareDialog;
+
+    static {
+        try {
+            onCreateDialog = Activity.class.getDeclaredMethod("onCreateDialog", int.class);
+            onCreateDialog.setAccessible(true);
+            onPrepareDialog = Activity.class.getDeclaredMethod("onPrepareDialog", int.class, Dialog.class);
+            onPrepareDialog.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Implementation
     public final Application getApplication() {
         return Robolectric.application;
