@@ -202,6 +202,15 @@ public class ActivityTest {
         assertTrue(dialogWasShowed.get());
     }
 
+    public void shouldSupportCurrentFocus() {
+        MyActivity activity = new MyActivity();
+        ShadowActivity shadow = shadowOf(activity);
+
+        assertNull(shadow.getCurrentFocus());
+        shadow.setCurrentFocus(new View(activity));
+        assertNotNull(shadow.getCurrentFocus());
+    }
+
     private static class MyActivity extends Activity {
         public boolean createdDialog = false;
         public boolean preparedDialog = false;
