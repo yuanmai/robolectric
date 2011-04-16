@@ -202,6 +202,7 @@ public class ActivityTest {
         assertTrue(dialogWasShowed.get());
     }
 
+    @Test
     public void shouldSupportCurrentFocus() {
         MyActivity activity = new MyActivity();
         ShadowActivity shadow = shadowOf(activity);
