@@ -39,6 +39,7 @@ public class ShadowActivity extends ShadowContextWrapper {
     private Activity parent;
     private boolean finishWasCalled;
     private TestWindow window;
+    private View currentFocus;
 
     private List<IntentForResult> startedActivitiesForResults = new ArrayList<IntentForResult>();
 
@@ -277,6 +278,20 @@ public class ShadowActivity extends ShadowContextWrapper {
         } catch (IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    /**
+     * Non-Android accessor Sets the {@code View} for this {@code Activity}
+     *
+     * @param view
+     */
+    public void setCurrentFocus(View view) {
+        currentFocus = view;
+    }
+
+    @Implementation
+    public View getCurrentFocus() {
+        return currentFocus;
     }
 
     /**
