@@ -171,28 +171,6 @@ public class ActivityTest {
     }
 
     @Test
-    public void showDialog_shouldCreatePrepareAndShowDialog() {
-        final MyActivity activity = new MyActivity();
-        final AtomicBoolean dialogWasShowed = new AtomicBoolean(false);
-
-        new Dialog(activity) {
-            {  activity.dialog = this; }
-
-            @Override
-            public void show() {
-                dialogWasShowed.set(true);
-            }
-        };
-
-        ShadowActivity shadow = Robolectric.shadowOf(activity);
-        shadow.showDialog(1);
-
-        assertTrue(activity.createdDialog);
-        assertTrue(activity.preparedDialog);
-        assertTrue(dialogWasShowed.get());
-    }
-
-    @Test
     public void shouldSupportCurrentFocus() {
         MyActivity activity = new MyActivity();
         ShadowActivity shadow = shadowOf(activity);
