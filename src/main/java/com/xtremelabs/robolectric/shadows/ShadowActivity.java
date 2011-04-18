@@ -47,7 +47,6 @@ public class ShadowActivity extends ShadowContextWrapper {
     private int requestedOrientation = -1;
     private static Method onCreateDialog;
     private static Method onPrepareDialog;
-    private View currentFocus;
 
     static {
         try {
