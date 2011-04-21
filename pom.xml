@@ -10,7 +10,7 @@
 
     <groupId>com.pivotallabs</groupId>
     <artifactId>robolectric</artifactId>
-    <version>1.1</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Robolectric</name>
     <description>An alternative Android testing framework.</description>
@@ -183,10 +183,10 @@
         </profile>
     </profiles>
     <distributionManagement>
-        <site>
-            <id>nexus</id>
-            <url>http://10.2.14.10:8081/nexus/content/repositories/thirdparty/</url>
-        </site>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://10.2.14.10:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
     <scm>
         <url>git@github.com:pivotal/robolectric.git</url>
