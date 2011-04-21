@@ -25,6 +25,7 @@ public class ShadowTextView extends ShadowView {
     private int autoLinkMask;
     private CharSequence hintText;
     private int compoundDrawablePadding;
+    private CharSequence error = null;
 
     @Override public void applyAttributes() {
         super.applyAttributes();
@@ -260,5 +261,15 @@ public class ShadowTextView extends ShadowView {
                     ", bottom=" + bottom +
                     '}';
         }
+    }
+
+    @Implementation
+    public CharSequence getError() {
+        return error;
+    }
+
+    @Implementation
+    public void setError(CharSequence error) {
+        this.error = error;
     }
 }
